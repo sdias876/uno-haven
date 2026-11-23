@@ -1,0 +1,12 @@
+# Render Blueprint — one web service hosts both the game server and the built client.
+services:
+  - type: web
+    name: uno-haven
+    runtime: node
+    plan: starter            # free plans sleep when idle, which drops live games
+    buildCommand: npm install --include=dev && npm run build
+    startCommand: npm start
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_VERSION
+        value: "22"

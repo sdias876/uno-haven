@@ -1,0 +1,87 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Fredoka", ui-rounded, system-ui, sans-serif;
+  --font-sans: "Nunito", ui-sans-serif, system-ui, sans-serif;
+  --color-felt-900: #071820;
+  --color-felt-800: #0b1f2a;
+  --color-felt-700: #0f2e3b;
+  --color-felt-600: #134152;
+  --color-gold: #f5c451;
+  --color-uno-red: #e53935;
+  --color-uno-yellow: #fbc02d;
+  --color-uno-green: #43a047;
+  --color-uno-blue: #1e88e5;
+}
+
+html, body, #root { height: 100%; }
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  color: #eaf4f6;
+  background:
+    radial-gradient(ellipse 120% 80% at 50% 45%, #17495a 0%, #0f2e3b 45%, #071820 100%);
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+/* subtle felt texture */
+.felt::before {
+  content: "";
+  position: fixed; inset: 0; pointer-events: none; opacity: .07;
+  background-image: radial-gradient(#fff 0.6px, transparent 0.6px);
+  background-size: 4px 4px;
+}
+
+.glass {
+  background: rgba(8, 30, 40, 0.62);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+@utility btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-2.5 font-display font-semibold tracking-wide transition active:scale-95 disabled:opacity-40 disabled:pointer-events-none;
+}
+.btn-gold { @apply btn text-felt-900 shadow-lg; background: linear-gradient(180deg, #ffd978, #f0b232); box-shadow: 0 6px 0 #a87412, 0 10px 24px rgba(0,0,0,.35); }
+.btn-gold:active { box-shadow: 0 2px 0 #a87412; transform: translateY(3px); }
+.btn-ghost { @apply btn bg-white/10 hover:bg-white/15 text-white; }
+@utility chip { @apply rounded-full px-2.5 py-1 text-xs font-bold; }
+
+/* Card faces */
+.uno-card {
+  position: relative;
+  border-radius: 12%/9%;
+  box-shadow: 0 2px 0 rgba(0,0,0,.25), 0 8px 18px rgba(0,0,0,.35);
+  border: 0.32em solid #fff;
+  overflow: hidden;
+  font-family: var(--font-display);
+}
+.uno-card .oval {
+  position: absolute; inset: 12% 8%;
+  background: #fff;
+  border-radius: 50%;
+  transform: rotate(28deg) scaleX(0.92);
+}
+.card-back {
+  background:
+    radial-gradient(ellipse 60% 70% at 50% 50%, #e53935 0 48%, transparent 49%),
+    #121212;
+}
+
+@keyframes pulse-ring { 0% { box-shadow: 0 0 0 0 rgba(245,196,81,.7);} 100% { box-shadow: 0 0 0 18px rgba(245,196,81,0);} }
+.pulse-ring { animation: pulse-ring 1.4s infinite; }
+
+@keyframes shake {
+  0%,100% { transform: translate(0,0) rotate(0); }
+  15% { transform: translate(-10px, 4px) rotate(-1deg); }
+  30% { transform: translate(9px, -6px) rotate(1deg); }
+  45% { transform: translate(-7px, 5px) rotate(-.6deg); }
+  60% { transform: translate(6px, -3px) rotate(.4deg); }
+  75% { transform: translate(-3px, 2px); }
+}
+.shake { animation: shake .55s cubic-bezier(.36,.07,.19,.97); }
+
+.scrollbar-thin::-webkit-scrollbar { width: 6px; }
+.scrollbar-thin::-webkit-scrollbar-thumb { background: rgba(255,255,255,.15); border-radius: 6px; }
