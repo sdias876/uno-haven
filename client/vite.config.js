@@ -21,8 +21,8 @@ export default defineConfig({
         name: 'UNO Haven',
         short_name: 'UNO Haven',
         description: 'Smart card game with adaptive bots and a coach. Play solo offline or with friends.',
-        theme_color: '#0b1f2a',
-        background_color: '#071820',
+        theme_color: '#0b1230',
+        background_color: '#070c22',
         display: 'standalone',
         orientation: 'any',
         start_url: '/',
@@ -34,7 +34,7 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,png,svg,webmanifest}'],
+        globPatterns: ['**/*.{js,css,html,png,svg,webmanifest,woff2}'],
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/socket\.io/, /^\/healthz/],
         runtimeCaching: [

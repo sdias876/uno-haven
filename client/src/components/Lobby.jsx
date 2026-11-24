@@ -11,8 +11,8 @@ const RULES = [
 ];
 const LEVELS = [
   { key: 'smart', label: 'Auto', icon: '✨', desc: 'Adapts to how well the table plays' },
-  { key: 'casual', label: 'Casual', icon: '😊', desc: 'Relaxed, forgets UNO sometimes' },
-  { key: 'tactical', label: 'Tactical', icon: '🧠', desc: 'Tracks cards, saves wilds' },
+  { key: 'casual', label: 'Chill', icon: '😊', desc: 'Relaxed, forgets UNO sometimes' },
+  { key: 'tactical', label: 'Classic', icon: '🧠', desc: 'Tracks cards, saves wilds' },
   { key: 'ruthless', label: 'Ruthless', icon: '😈', desc: 'Disrupts colors, catches everything' },
 ];
 
@@ -42,7 +42,7 @@ export function Lobby() {
     <div className="felt min-h-full overflow-y-auto">
       <div className="max-w-4xl mx-auto p-4 sm:p-6">
         <div className="flex items-center gap-3 mb-5">
-          <h1 className="font-display text-3xl">Table <span className="font-mono tracking-widest text-gold">{room.code}</span></h1>
+          <h1 className="font-display text-3xl">Table <span className="tracking-[0.12em] text-gold">{room.code}</span></h1>
           <div className="ml-auto flex gap-2">
             <button onClick={() => setChatOpen((o) => !o)} className="btn-ghost !py-2">💬 Chat</button>
             <button onClick={actions.leave} className="btn-ghost !py-2">Leave</button>
@@ -51,8 +51,8 @@ export function Lobby() {
 
         <motion.div initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="glass rounded-3xl p-4 mb-4 flex flex-col sm:flex-row sm:items-center gap-3">
           <div className="flex-1 min-w-0">
-            <div className="text-xs uppercase tracking-wider text-white/50 font-bold">1-click invite</div>
-            <div className="font-mono text-sm truncate select-all">{inviteUrl}</div>
+            <div className="text-sm text-white/60">Invite link</div>
+            <div className="text-sm truncate select-all text-white/90">{inviteUrl}</div>
             <div className="text-xs text-white/50 mt-0.5">Friends who join a full or running table watch as spectators.</div>
           </div>
           <button onClick={copy} className="btn-gold">🔗 Copy invite link</button>
@@ -74,7 +74,7 @@ export function Lobby() {
                     <div className="min-w-0 flex-1">
                       <div className="font-bold truncate">{s.name}{s.id === me?.id ? ' (you)' : ''}</div>
                       <div className="text-xs text-white/50">
-                        {s.id === room.hostId ? '👑 Host' : s.isBot ? `Bot · ${s.botLevel}` : s.connected ? 'Ready' : 'Reconnecting…'}
+                        {s.id === room.hostId ? '👑 Host' : s.isBot ? `${{ smart: 'Auto', casual: 'Chill', tactical: 'Classic', ruthless: 'Ruthless' }[s.botLevel] ?? s.botLevel} bot` : s.connected ? 'Ready' : 'Reconnecting…'}
                       </div>
                     </div>
                     {isHost && s.isBot && (
@@ -92,7 +92,7 @@ export function Lobby() {
             </ul>
             {isHost && !full && (
               <div className="mt-3">
-                <div className="text-xs uppercase tracking-wider text-white/50 font-bold mb-1.5">Add a smart bot</div>
+                <div className="text-sm text-white/60 mb-1.5">Add a bot</div>
                 <div className="grid grid-cols-4 gap-2">
                   {LEVELS.map((l) => (
                     <button key={l.key} onClick={() => actions.addBot(l.key)} className="btn-ghost !flex-col !gap-0 !py-2" title={l.desc}>

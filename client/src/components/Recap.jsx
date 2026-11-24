@@ -9,7 +9,7 @@ function Stat({ icon, label, value, sub, delay }) {
     <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1, transition: { delay } }}
       className="rounded-2xl bg-white/7 border border-white/10 p-3">
       <div className="text-2xl">{icon}</div>
-      <div className="text-[11px] uppercase tracking-wider text-white/50 font-bold mt-1">{label}</div>
+      <div className="text-xs text-white/55 mt-1">{label}</div>
       <div className="font-display text-lg leading-tight">{value}</div>
       {sub && <div className="text-xs text-white/60">{sub}</div>}
     </motion.div>
@@ -33,7 +33,7 @@ export function Recap() {
         <div className="text-center">
           <div className="text-5xl mb-1">{iWon ? "🏆" : "🃏"}</div>
           <h2 className="font-display text-3xl sm:text-4xl">{iWon ? 'You win!' : `${r.winnerName.replace(' 🤖', '')} wins!`}</h2>
-          <p className="text-white/70 mt-1">{r.score} points from the table · {r.totalTurns} turns</p>
+          <p className="text-white/70 mt-1">{r.score} points in {r.totalTurns} turns</p>
           {room.botTrend && (
             <p className="mt-2 inline-block chip bg-white/10 !text-sm">
               {room.botTrend === 'up' ? '📈 Auto bots will play a little tougher next round' : '📉 Auto bots will ease off a little next round'}
@@ -41,7 +41,7 @@ export function Recap() {
           )}
         </div>
 
-        <h3 className="font-display text-gold text-lg mt-6 mb-2">✨ Smart Match Recap</h3>
+        <h3 className="font-display text-gold text-xl mt-6 mb-2">Smart Match Recap</h3>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
           <Stat delay={0.1} icon="😈" label="Most ruthless move"
             value={h.mostRuthless ? `${h.mostRuthless.by.replace(' 🤖', '')} → ${h.mostRuthless.victim.replace(' 🤖', '')}` : 'Peaceful game'}
@@ -56,7 +56,7 @@ export function Recap() {
 
         <div className="mt-5 rounded-2xl overflow-hidden border border-white/10">
           <table className="w-full text-sm">
-            <thead className="bg-white/5 text-white/60 text-xs uppercase">
+            <thead className="bg-white/5 text-white/60 text-xs">
               <tr><th className="text-left p-2">Player</th><th className="p-2">Left</th><th className="p-2">Played</th><th className="p-2">Drew</th><th className="p-2 hidden sm:table-cell">Actions</th><th className="p-2 hidden sm:table-cell">Catches</th><th className="p-2">Avg turn</th></tr>
             </thead>
             <tbody>
@@ -77,7 +77,7 @@ export function Recap() {
 
         {game?.players?.some((p) => p.hand?.length) && (
           <div className="mt-4">
-            <div className="text-xs uppercase tracking-wider text-white/50 font-bold mb-1">Cards left in hands</div>
+            <div className="text-sm text-white/60 mb-1">Cards left in hands</div>
             <div className="space-y-1.5">
               {game.players.filter((p) => p.hand?.length).map((p) => (
                 <div key={p.id} className="flex items-center gap-2">

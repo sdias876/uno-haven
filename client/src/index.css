@@ -1,76 +1,155 @@
 @import "tailwindcss";
 
+/* ───────────── Design tokens: "Arctic night card lounge" ─────────────
+   Midnight felt, a brass rail, and one memorable thing: a slow aurora glow. */
 @theme {
-  --font-display: "Fredoka", ui-rounded, system-ui, sans-serif;
-  --font-sans: "Nunito", ui-sans-serif, system-ui, sans-serif;
-  --color-felt-900: #071820;
-  --color-felt-800: #0b1f2a;
-  --color-felt-700: #0f2e3b;
-  --color-felt-600: #134152;
-  --color-gold: #f5c451;
-  --color-uno-red: #e53935;
-  --color-uno-yellow: #fbc02d;
-  --color-uno-green: #43a047;
-  --color-uno-blue: #1e88e5;
+  --font-display: "Lilita One", "Arial Rounded MT Bold", ui-rounded, system-ui, sans-serif;
+  --font-sans: "Outfit Variable", "Outfit", ui-sans-serif, system-ui, sans-serif;
+
+  --color-felt-950: #050918;
+  --color-felt-900: #070c22;
+  --color-felt-800: #0b1230;
+  --color-felt-700: #131c45;
+  --color-felt-600: #1e2a63;
+  --color-gold: #d9b26a;          /* brass */
+  --color-brass-deep: #8a6a33;
+  --color-ink: #f4f6ff;
+  --color-aurora-green: #3ddc97;
+  --color-aurora-violet: #7b5cff;
+
+  --color-uno-red: #e5383b;
+  --color-uno-yellow: #f7c548;
+  --color-uno-green: #2bb673;
+  --color-uno-blue: #2d7ff9;
 }
 
 html, body, #root { height: 100%; }
 body {
   margin: 0;
   font-family: var(--font-sans);
-  color: #eaf4f6;
+  font-weight: 400;
+  color: var(--color-ink);
   background:
-    radial-gradient(ellipse 120% 80% at 50% 45%, #17495a 0%, #0f2e3b 45%, #071820 100%);
+    radial-gradient(ellipse 90% 70% at 50% 55%, #18214f 0%, #0b1230 55%, #050918 100%);
   overscroll-behavior: none;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
+  -webkit-font-smoothing: antialiased;
 }
+.font-display, h1, h2, h3 { font-synthesis: none; font-weight: 400; letter-spacing: 0.01em; }
 
-/* subtle felt texture */
+/* Aurora: the one ambient effect. Slow, soft, and it stops for reduced-motion users. */
+.aurora {
+  position: fixed; inset: -20% -10% auto -10%; height: 70vh; pointer-events: none; z-index: 0;
+  background:
+    radial-gradient(ellipse 40% 55% at 25% 40%, rgba(61, 220, 151, 0.22), transparent 70%),
+    radial-gradient(ellipse 45% 50% at 60% 30%, rgba(123, 92, 255, 0.22), transparent 70%),
+    radial-gradient(ellipse 35% 45% at 85% 45%, rgba(61, 220, 151, 0.12), transparent 70%);
+  filter: blur(30px);
+  animation: aurora-drift 38s ease-in-out infinite alternate;
+}
+@keyframes aurora-drift {
+  0% { transform: translate3d(-4%, 0, 0) skewY(-3deg); opacity: .8; }
+  50% { transform: translate3d(3%, 3%, 0) skewY(2deg); opacity: 1; }
+  100% { transform: translate3d(6%, -2%, 0) skewY(-1deg); opacity: .75; }
+}
+@media (prefers-reduced-motion: reduce) { .aurora { animation: none; } }
+
+/* Fine felt grain */
+.felt { position: relative; isolation: isolate; }
 .felt::before {
   content: "";
-  position: fixed; inset: 0; pointer-events: none; opacity: .07;
-  background-image: radial-gradient(#fff 0.6px, transparent 0.6px);
-  background-size: 4px 4px;
+  position: fixed; inset: 0; pointer-events: none; opacity: .05; z-index: -1;
+  background-image: radial-gradient(#fff 0.55px, transparent 0.6px);
+  background-size: 3px 3px;
 }
 
+/* The card table: midnight felt in a brass-rimmed oval */
+.table-oval {
+  border-radius: 50%;
+  background:
+    radial-gradient(ellipse at 50% 40%, rgba(255,255,255,.07), transparent 60%),
+    radial-gradient(ellipse at 50% 50%, #1b2760 0%, #121a45 60%, #0c1335 100%);
+  box-shadow:
+    0 0 0 6px #1a1408,
+    0 0 0 9px var(--color-gold),
+    0 0 0 13px #5c4520,
+    0 30px 60px rgba(0,0,0,.55),
+    inset 0 0 60px rgba(0,0,0,.55);
+}
+
+/* Panels */
 .glass {
-  background: rgba(8, 30, 40, 0.62);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: linear-gradient(180deg, rgba(24, 33, 79, 0.92), rgba(13, 19, 52, 0.94));
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(217, 178, 106, 0.22);
+  box-shadow: 0 1px 0 rgba(255,255,255,.06) inset, 0 20px 50px rgba(0,0,0,.45);
 }
 
 @utility btn {
-  @apply inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-2.5 font-display font-semibold tracking-wide transition active:scale-95 disabled:opacity-40 disabled:pointer-events-none;
+  @apply inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-2.5 font-sans font-semibold transition active:scale-[.97] disabled:opacity-40 disabled:pointer-events-none;
 }
-.btn-gold { @apply btn text-felt-900 shadow-lg; background: linear-gradient(180deg, #ffd978, #f0b232); box-shadow: 0 6px 0 #a87412, 0 10px 24px rgba(0,0,0,.35); }
-.btn-gold:active { box-shadow: 0 2px 0 #a87412; transform: translateY(3px); }
-.btn-ghost { @apply btn bg-white/10 hover:bg-white/15 text-white; }
-@utility chip { @apply rounded-full px-2.5 py-1 text-xs font-bold; }
+.btn-gold {
+  @apply btn;
+  color: #1b1405;
+  font-weight: 700;
+  background: linear-gradient(180deg, #f3d899 0%, #d9b26a 55%, #b98f45 100%);
+  box-shadow: 0 1px 0 rgba(255,255,255,.6) inset, 0 4px 0 #7a5b26, 0 12px 28px rgba(0,0,0,.4);
+}
+.btn-gold:hover { filter: brightness(1.05); }
+.btn-gold:active { box-shadow: 0 1px 0 rgba(255,255,255,.6) inset, 0 1px 0 #7a5b26; transform: translateY(3px); }
+.btn-ghost {
+  @apply btn text-white;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.12);
+}
+.btn-ghost:hover { background: rgba(255,255,255,.11); border-color: rgba(217,178,106,.4); }
+@utility chip { @apply rounded-full px-2.5 py-1 text-xs font-semibold; }
 
-/* Card faces */
+:focus-visible { outline: 2px solid var(--color-gold); outline-offset: 3px; border-radius: 12px; }
+
+/* ───────────── Cards ───────────── */
 .uno-card {
   position: relative;
-  border-radius: 12%/9%;
-  box-shadow: 0 2px 0 rgba(0,0,0,.25), 0 8px 18px rgba(0,0,0,.35);
-  border: 0.32em solid #fff;
+  border-radius: 11%/7.5%;
+  border: 0.3em solid #fdfdfd;
   overflow: hidden;
   font-family: var(--font-display);
+  box-shadow: 0 1px 0 rgba(255,255,255,.4) inset, 0 2px 0 rgba(0,0,0,.25), 0 10px 22px rgba(0,0,0,.4);
+}
+/* gloss sheen */
+.uno-card::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(140deg, rgba(255,255,255,.38) 0%, rgba(255,255,255,.08) 28%, transparent 45%, rgba(0,0,0,.12) 100%);
+}
+/* inner frame line */
+.uno-card .frame {
+  position: absolute; inset: 5%; border-radius: 9%/6%;
+  border: 0.06em solid rgba(255,255,255,.35); pointer-events: none;
 }
 .uno-card .oval {
-  position: absolute; inset: 12% 8%;
-  background: #fff;
+  position: absolute; inset: 13% 9%;
+  background: radial-gradient(ellipse at 40% 35%, #ffffff 0%, #f1f3f8 70%, #dfe3ec 100%);
   border-radius: 50%;
-  transform: rotate(28deg) scaleX(0.92);
+  transform: rotate(28deg) scaleX(0.9);
+  box-shadow: inset 0 0 0 0.12em rgba(0,0,0,.08), 0 0.1em 0.3em rgba(0,0,0,.18);
 }
 .card-back {
   background:
-    radial-gradient(ellipse 60% 70% at 50% 50%, #e53935 0 48%, transparent 49%),
-    #121212;
+    repeating-linear-gradient(45deg, rgba(217,178,106,.09) 0 2px, transparent 2px 9px),
+    repeating-linear-gradient(-45deg, rgba(217,178,106,.09) 0 2px, transparent 2px 9px),
+    radial-gradient(ellipse at 50% 40%, #1f2b6b 0%, #0c1335 100%);
+}
+.card-back .back-oval {
+  position: absolute; inset: 18% 10%;
+  border-radius: 50%;
+  transform: rotate(-22deg);
+  background: radial-gradient(ellipse at 40% 35%, #f0484b, #b81f22);
+  box-shadow: 0 0 0 0.18em var(--color-gold), 0 0.15em 0.5em rgba(0,0,0,.5);
 }
 
-@keyframes pulse-ring { 0% { box-shadow: 0 0 0 0 rgba(245,196,81,.7);} 100% { box-shadow: 0 0 0 18px rgba(245,196,81,0);} }
+@keyframes pulse-ring { 0% { box-shadow: 0 0 0 0 rgba(217,178,106,.75);} 100% { box-shadow: 0 0 0 18px rgba(217,178,106,0);} }
 .pulse-ring { animation: pulse-ring 1.4s infinite; }
 
 @keyframes shake {

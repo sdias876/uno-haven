@@ -5,6 +5,7 @@ import { prefs } from '../lib/socket.js';
 import { useInstall } from '../lib/install.js';
 import { Card } from './Card.jsx';
 import { Tutorial } from './Tutorial.jsx';
+import { Logo } from './Logo.jsx';
 
 const AVATARS = ['🦊', '🐼', '🐯', '🐸', '🦉', '🐙', '🦄', '🐨', '🐵', '🐧', '🦁', '🐳'];
 const MODES = [
@@ -48,26 +49,23 @@ export function Home() {
   return (
     <div className="felt min-h-full overflow-y-auto flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <div className="relative h-40 mb-2">
+        <div className="relative h-44 mb-2">
           {heroCards.map((c, i) => (
             <motion.div key={c.id} className="absolute left-1/2 top-4"
               initial={{ y: 80, opacity: 0, rotate: 0, x: '-50%' }}
-              animate={{ y: Math.abs(i - 2) * 8, opacity: 1, rotate: (i - 2) * 14, x: `calc(-50% + ${(i - 2) * 46}px)` }}
+              animate={{ y: Math.abs(i - 2) * 10, opacity: 1, rotate: (i - 2) * 13, x: `calc(-50% + ${(i - 2) * 52}px)` }}
               transition={{ delay: 0.1 + i * 0.08, type: 'spring', stiffness: 200, damping: 16 }}
               whileHover={{ y: -16 }}>
-              <Card card={c} size="md" />
+              <Card card={c} size={82} />
             </motion.div>
           ))}
         </div>
-        <h1 className="font-display text-5xl text-center font-bold tracking-wide">
-          <span className="text-uno-red">U</span><span className="text-uno-yellow">N</span><span className="text-uno-green">O</span>
-          <span className="text-white"> Haven</span>
-        </h1>
-        <p className="text-center text-white/65 mt-1 mb-5">Tap a card. Match the color or number. Win.</p>
+        <h1 className="flex justify-center mt-1"><Logo size={58} animate /></h1>
+        <p className="text-center text-white/70 mt-3 mb-6 text-lg">Match the color or number. Empty your hand first.</p>
 
-        <div className="glass rounded-3xl p-5 space-y-4">
+        <div className="glass rounded-[28px] p-5 sm:p-6 space-y-4">
           <div>
-            <label htmlFor="name" className="text-xs uppercase tracking-wider text-white/50 font-bold">Your name</label>
+            <label htmlFor="name" className="text-sm text-white/60">Your name</label>
             <div className="flex gap-2 mt-1">
               <button onClick={() => setProfile({ ...profile, avatar: AVATARS[(AVATARS.indexOf(profile.avatar) + 1) % AVATARS.length] })}
                 className="text-3xl w-14 shrink-0 rounded-xl bg-white/10 hover:bg-white/15" title="Tap to change your avatar" aria-label="Change avatar">{profile.avatar}</button>
@@ -80,7 +78,7 @@ export function Home() {
 
           {code ? (
             <div className="space-y-2">
-              <div className="text-sm text-white/70">You’ve been invited to table <b className="font-mono text-gold">{code}</b></div>
+              <div className="text-sm text-white/70">You’ve been invited to table <b className="text-gold tracking-[0.12em]">{code}</b></div>
               <button disabled={busy || !canOnline} onClick={() => run(() => actions.joinRoom(code))} className="btn-gold w-full text-lg !py-3.5">
                 {canOnline ? 'Join table 🃏' : offline ? 'You’re offline' : 'Connecting…'}
               </button>
@@ -93,7 +91,7 @@ export function Home() {
                   Play now ▶
                 </motion.button>
                 <button onClick={() => setShowModes((o) => !o)} className="w-full mt-2 text-sm text-white/60 hover:text-white">
-                  vs 3 bots · {current.icon} {current.label}{mode === 'smart' ? ` (${skillLabel(skill)} right now)` : ''} ▾
+                  Against 3 bots, {current.label.toLowerCase()} difficulty{mode === 'smart' ? ` (${skillLabel(skill)} right now)` : ''} ▾
                 </button>
                 <AnimatePresence>
                   {showModes && (
@@ -122,7 +120,7 @@ export function Home() {
                     <button disabled={busy || !canOnline} onClick={() => run(actions.createRoom)} className="btn-ghost">New table</button>
                     <form className="flex gap-1" onSubmit={(e) => { e.preventDefault(); const v = e.currentTarget.code.value; if (v) run(() => actions.joinRoom(v)); }}>
                       <input name="code" placeholder="CODE" maxLength={5} aria-label="Table code"
-                        className="w-full min-w-0 rounded-2xl bg-white/10 px-3 font-mono tracking-widest uppercase outline-none focus:ring-2 ring-gold/60 select-text" />
+                        className="w-full min-w-0 rounded-2xl bg-white/10 px-3 tracking-[0.18em] uppercase outline-none focus:ring-2 ring-gold/60 select-text" />
                       <button className="btn-ghost !px-3" disabled={busy || !canOnline}>Join</button>
                     </form>
                     {!canOnline && (

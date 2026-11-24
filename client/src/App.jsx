@@ -10,8 +10,9 @@ function Screen() {
   const view = !room ? 'home' : room.phase === 'lobby' || !game ? 'lobby' : 'table';
   return (
     <>
+      <div className="aurora" aria-hidden />
       {/* Fade in only: an exit animation would keep the old screen mounted after its room is gone */}
-      <motion.div key={view} className="h-full" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2 }}>
+      <motion.div key={view} className="relative z-[1] h-full" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2 }}>
         {view === 'home' && <Home />}
         {view === 'lobby' && <Lobby />}
         {view === 'table' && <Table />}

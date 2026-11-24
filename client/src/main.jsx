@@ -2,6 +2,8 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { MotionConfig } from 'framer-motion';
 import App from './App.jsx';
+import '@fontsource/lilita-one/latin-400.css';
+import '@fontsource-variable/outfit';
 import './index.css';
 
 createRoot(document.getElementById('root')).render(

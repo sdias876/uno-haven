@@ -10,6 +10,7 @@ import { useViewport, pileCardWidth } from '../lib/useViewport.js';
 import { ColorPicker, SwapPicker } from './Pickers.jsx';
 import { ChatPanel, EmoteBar, EmoteLayer } from './Social.jsx';
 import { Recap } from './Recap.jsx';
+import { Logo } from './Logo.jsx';
 import { useTips } from '../lib/tips.js';
 
 const hash = (s) => [...s].reduce((h, c) => (h * 31 + c.charCodeAt(0)) | 0, 7);
@@ -70,11 +71,8 @@ function TopBar({ onChat, unread, voiceOn, setVoiceOn, listening, coachOn, setCo
   const close = () => { setOpen(false); setConfirmLeave(false); };
   return (
     <header className="relative z-40 flex items-center gap-2 px-3 py-2">
-      <div className="font-display text-xl sm:text-2xl font-bold tracking-wide">
-        <span className="text-uno-red">U</span><span className="text-uno-yellow">N</span><span className="text-uno-green">O</span>
-        <span className="text-white/80 text-base sm:text-lg ml-1">Haven</span>
-      </div>
-      {!online && <span className="chip bg-white/10 text-white/70">Solo · works offline</span>}
+      <Logo size={30} />
+      {!online && <span className="chip bg-white/8 text-white/60 hidden sm:inline">Solo game, works offline</span>}
       {online && room.spectators.length > 0 && <span className="chip bg-white/10">👀 {room.spectators.length}</span>}
       {voiceOn && listening && <span className="chip bg-emerald-500/30" title="Say “UNO!”">🎙️</span>}
       <button onClick={() => setOpen((o) => !o)} aria-label="Menu" aria-expanded={open}
@@ -89,7 +87,7 @@ function TopBar({ onChat, unread, voiceOn, setVoiceOn, listening, coachOn, setCo
             <motion.nav className="glass !bg-felt-800/95 absolute right-3 top-14 z-50 w-72 rounded-3xl p-2 shadow-2xl"
               initial={{ opacity: 0, y: -10, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -10, scale: 0.97 }}
               transition={{ type: 'spring', stiffness: 500, damping: 34 }}>
-              {online && <MenuRow icon="🔗" label="Invite friends" sub={`Table ${room.code} · copies a link`} onClick={() => { invite(); close(); }} />}
+              {online && <MenuRow icon="🔗" label="Invite friends" sub={`Copies a link to table ${room.code}`} onClick={() => { invite(); close(); }} />}
               {online && <MenuRow icon="💬" label={`Chat${unread ? ` (${unread} new)` : ''}`} onClick={() => { onChat(); close(); }} />}
               <MenuRow icon={muted ? '🔇' : '🔊'} label="Sound" on={!muted} onClick={() => setMuted(!muted)} />
               <MenuRow icon="🦉" label="Smart Coach" sub="Shows the 💡 hint button" on={coachOn} onClick={() => setCoachOn(!coachOn)} />
@@ -111,39 +109,43 @@ function Opponent({ seat, player, isTurn, vulnerable, onCatch, revealHand, timer
   const count = player?.cardCount ?? 0;
   const shown = Math.min(count, 8);
   return (
-    <motion.div layout className="flex flex-col items-center gap-1 min-w-[78px]">
+    <motion.div layout className="flex flex-col items-center gap-1.5 min-w-[84px]">
       <div className="relative">
         {isTurn && timerPct != null && (
-          <svg className="absolute -inset-1.5 w-[calc(100%+12px)] h-[calc(100%+12px)] -rotate-90" viewBox="0 0 60 60">
-            <circle cx="30" cy="30" r="27" fill="none" stroke="rgba(255,255,255,.15)" strokeWidth="4" />
-            <circle cx="30" cy="30" r="27" fill="none" stroke={timerPct < 0.3 ? '#ff5252' : '#f5c451'} strokeWidth="4" strokeLinecap="round"
+          <svg className="absolute -inset-1.5 w-[calc(100%+12px)] h-[calc(100%+12px)] -rotate-90" viewBox="0 0 60 60" aria-hidden>
+            <circle cx="30" cy="30" r="27" fill="none" stroke="rgba(255,255,255,.12)" strokeWidth="3.5" />
+            <circle cx="30" cy="30" r="27" fill="none" stroke={timerPct < 0.3 ? '#ff5a5d' : '#d9b26a'} strokeWidth="3.5" strokeLinecap="round"
               strokeDasharray={`${170 * timerPct} 170`} />
           </svg>
         )}
-        <motion.div animate={isTurn ? { scale: [1, 1.08, 1] } : { scale: 1 }} transition={{ repeat: isTurn ? Infinity : 0, duration: 1.4 }}
-          className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full grid place-items-center text-2xl sm:text-3xl ${isTurn ? 'bg-gold/30 ring-4 ring-gold' : 'bg-white/10'} ${!seat.connected ? 'opacity-50' : ''}`}>
+        <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full grid place-items-center text-2xl sm:text-3xl transition
+          ${isTurn ? 'bg-gradient-to-b from-[#2a3675] to-[#18214f] shadow-[0_0_0_3px_#d9b26a,0_0_24px_rgba(217,178,106,.45)]' : 'bg-gradient-to-b from-[#1f2a5e] to-[#121a45] shadow-[0_0_0_2px_rgba(255,255,255,.12)]'}
+          ${!seat.connected ? 'opacity-50' : ''}`}>
           {seat.avatar}
-        </motion.div>
-        {seat.autopilot && <span className="absolute -bottom-1 -right-1 chip bg-sky-500 !px-1.5 !py-0.5 text-[10px]" title="Autopilot">🤖</span>}
-        {count === 1 && !vulnerable && <span className="absolute -top-2 -right-3 chip bg-uno-red text-white text-[10px] rotate-12">UNO</span>}
+        </div>
+        {seat.autopilot && <span className="absolute -bottom-1 -right-1 chip bg-sky-500 !px-1.5 !py-0.5 text-[10px]" title="Autopilot is playing">🤖</span>}
+        {count === 1 && !vulnerable && <span className="absolute -top-2 -right-4 chip bg-uno-red text-white font-display !text-[11px] rotate-12 shadow">UNO</span>}
       </div>
-      <div className="text-xs sm:text-sm font-bold max-w-[96px] truncate">{seat.name}</div>
+      <div className={`text-xs sm:text-sm font-semibold max-w-[110px] truncate px-2.5 py-0.5 rounded-full ${isTurn ? 'bg-gold text-[#1b1405]' : 'bg-black/30 text-white/85'}`}>
+        {seat.name.replace(' 🤖', '')}
+      </div>
       {revealHand && player?.hand ? (
         <div className="flex -space-x-8 max-w-[220px] overflow-hidden">
           {player.hand.slice(0, 10).map((c) => <Card key={c.id} card={c} size="sm" />)}
         </div>
       ) : (
-        <div className="relative h-[56px] flex items-end justify-center" style={{ width: 36 + shown * 10 }}>
+        <div className="relative h-[58px] flex items-end justify-center" style={{ width: 36 + shown * 10 }}>
           {Array.from({ length: shown }).map((_, i) => (
-            <Card key={i} faceDown size="xs" className="!absolute bottom-0" style={{ left: i * 10, transform: `rotate(${(i - shown / 2) * 4}deg)`, width: 36, height: 52, fontSize: 5.5 }} />
+            <Card key={i} faceDown size={36} className="!absolute bottom-0" style={{ left: i * 10, transform: `rotate(${(i - shown / 2) * 4}deg)` }} />
           ))}
+          <span className="absolute -right-3 -bottom-1 min-w-6 h-6 px-1 rounded-full grid place-items-center text-xs font-bold text-[#1b1405] shadow"
+            style={{ background: 'linear-gradient(180deg,#f3d899,#c99a4e)' }} aria-label={`${count} cards`}>{count}</span>
         </div>
       )}
-      <span className="chip bg-black/40">{count} card{count === 1 ? '' : 's'}</span>
       <AnimatePresence>
         {vulnerable && (
           <motion.button initial={{ scale: 0 }} animate={{ scale: [1, 1.12, 1] }} exit={{ scale: 0 }} transition={{ repeat: Infinity, duration: 0.7 }}
-            onClick={onCatch} className="btn !py-1 !px-3 bg-rose-600 text-white text-sm shadow-lg">Catch! 🚨</motion.button>
+            onClick={onCatch} className="btn !py-1 !px-3 bg-uno-red text-white text-sm shadow-lg">Catch them!</motion.button>
         )}
       </AnimatePresence>
     </motion.div>
@@ -157,14 +159,17 @@ function CenterPiles({ game, canDraw, onDraw, lastPlayFrom }) {
   const ring = Math.round(pw * 3.3);
   return (
     <div className="relative flex items-center justify-center gap-6 sm:gap-10">
-      {/* Direction ring + active color */}
-      <motion.div className="absolute rounded-full pointer-events-none"
-        animate={{ rotate: game.direction === 1 ? 360 : -360 }} transition={{ repeat: Infinity, duration: 14, ease: 'linear' }}
-        style={{ width: ring, height: ring, border: `3px dashed ${COLOR_HEX[game.currentColor]}66` }}>
-        <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-xl" style={{ color: COLOR_HEX[game.currentColor] }}>{game.direction === 1 ? '➤' : '◀'}</span>
-      </motion.div>
-      <div className="absolute rounded-full blur-3xl opacity-35 pointer-events-none transition-colors duration-500"
-        style={{ width: ring * 0.8, height: ring * 0.8, background: COLOR_HEX[game.currentColor] }} />
+      {/* The table: brass-rimmed felt oval, lit in the active color */}
+      <div className="absolute table-oval pointer-events-none" style={{ width: Math.min(ring * 1.45, window.innerWidth - 28), height: ph + 150, top: -46 }}>
+        <div className="absolute inset-[7%] rounded-[50%] transition-[box-shadow] duration-500"
+          style={{ boxShadow: `inset 0 0 0 2px ${COLOR_HEX[game.currentColor]}55, inset 0 0 50px ${COLOR_HEX[game.currentColor]}40` }} />
+        <motion.div key={game.direction} initial={{ rotate: game.direction === 1 ? -180 : 180 }} animate={{ rotate: 0 }} transition={{ type: 'spring', stiffness: 120, damping: 14 }}
+          className="absolute -left-[16px] top-1/2 -mt-[18px] w-9 h-9 rounded-full grid place-items-center text-lg text-[#1b1405] shadow-lg"
+          style={{ background: 'linear-gradient(180deg,#f3d899,#c99a4e)' }}
+          title={game.direction === 1 ? 'Play goes clockwise' : 'Play goes counter-clockwise'}>
+          {game.direction === 1 ? '↻' : '↺'}
+        </motion.div>
+      </div>
 
       {/* Draw pile */}
       <motion.button onClick={onDraw} disabled={!canDraw} whileHover={canDraw ? { y: -4, rotate: -2 } : {}} whileTap={canDraw ? { scale: 0.94 } : {}}
@@ -172,10 +177,10 @@ function CenterPiles({ game, canDraw, onDraw, lastPlayFrom }) {
         {[2, 1, 0].map((i) => (
           <Card key={i} faceDown size={pw} className={i ? '!absolute' : ''} style={{ top: -i * 2, left: -i * 2 }} />
         ))}
-        {canDraw && <span className="absolute -bottom-7 left-1/2 -translate-x-1/2 text-xs font-bold text-gold whitespace-nowrap animate-pulse">
+        {canDraw && <span className="absolute -bottom-7 left-1/2 -translate-x-1/2 text-xs font-semibold text-gold whitespace-nowrap animate-pulse">
           {game.pendingDraw > 0 ? `Take +${game.pendingDraw}` : 'Tap to draw'}
         </span>}
-        <span className="absolute -top-2 -right-2 chip bg-black/60 text-[10px]">{game.drawCount}</span>
+        <span className="absolute -top-2 -right-2 chip bg-black/60 text-white/70 text-[10px]" aria-label={`${game.drawCount} cards left in the deck`}>{game.drawCount}</span>
       </motion.button>
 
       {/* Discard pile */}
@@ -369,7 +374,7 @@ export function Table() {
         coachOn={coachOn} setCoachOn={setCoachOn} tipsOn={tipsOn} setTipsOn={setTipsOn} />
 
       {/* Opponents */}
-      <div className="flex justify-center gap-2 sm:gap-6 px-2 pt-1 flex-wrap">
+      <div className="relative z-10 flex justify-center gap-2 sm:gap-6 px-2 pt-1 flex-wrap">
         {others.map(({ player, seat }) => (
           <Opponent key={player.id} seat={seat} player={player} isTurn={game.turnPlayerId === player.id}
             vulnerable={game.unoVulnerable === player.id && !spectator && game.phase === 'playing'}
@@ -382,8 +387,8 @@ export function Table() {
       <div className="flex-1 flex flex-col items-center justify-center min-h-[220px]">
         <CenterPiles game={game} canDraw={canDraw} onDraw={actions.draw} lastPlayFrom={lastPlayFrom} />
         <motion.div key={status} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
-          className={`mt-9 px-4 py-1.5 rounded-full text-sm sm:text-base font-bold ${myTurn ? 'bg-gold text-felt-900 shadow-lg' : 'bg-black/30 text-white/85'}`}>
-          {status}{myTurn && secsLeft != null && room.settings.turnSeconds ? ` · ${secsLeft}s` : ''}
+          className={`relative z-10 mt-9 px-4 py-1.5 rounded-full text-sm sm:text-base font-bold ${myTurn ? 'bg-gold text-felt-900 shadow-lg' : 'bg-black/30 text-white/85'}`}>
+          {status}{myTurn && secsLeft != null && room.settings.turnSeconds ? <span className={`ml-2 inline-grid place-items-center min-w-7 h-6 px-1.5 rounded-full text-xs ${secsLeft <= 5 ? 'bg-uno-red text-white' : 'bg-black/20'}`}>{secsLeft}</span> : null}
         </motion.div>
       </div>
 

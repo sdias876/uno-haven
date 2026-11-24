@@ -30,7 +30,7 @@ export function Hand({ hand, playable, myTurn, hintCardId, onPlay, disabled }) {
   const size = cardW;
   const cards = sortHand(hand);
   const n = cards.length;
-  const spacing = n <= 1 ? 0 : Math.min(cardW * 0.7, (width - cardW * 1.6) / (n - 1));
+  const spacing = n <= 1 ? 0 : Math.min(cardW * 0.7, (width - cardW * (width < 500 ? 1.95 : 1.6)) / (n - 1));
   const total = spacing * (n - 1);
   const maxAngle = Math.min(28, n * 2.6);
   const playableSet = new Set(playable);
@@ -69,7 +69,7 @@ export function Hand({ hand, playable, myTurn, hintCardId, onPlay, disabled }) {
                 size={size}
                 className={`transition-[filter,opacity] duration-200 ${isHint ? 'pulse-ring' : ''}`}
                 style={{
-                  filter: dim ? 'brightness(0.55) saturate(0.6)' : 'none',
+                  filter: dim ? 'brightness(0.62) saturate(0.75)' : 'none',
                   boxShadow: canPlay
                     ? `0 0 0 3px rgba(255,255,255,.85), 0 0 22px 4px ${isHint ? 'rgba(245,196,81,.95)' : 'rgba(120,230,255,.55)'}, 0 10px 20px rgba(0,0,0,.4)`
                     : undefined,

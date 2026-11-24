@@ -63,7 +63,7 @@ export function Tutorial({ onDone, onSkip }) {
         <AnimatePresence mode="wait">
           {!done ? (
             <motion.div key={step} initial={{ x: 40, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -40, opacity: 0 }}>
-              <div className="text-xs font-bold text-gold uppercase tracking-wider">Step {step + 1} of 3</div>
+              <div className="text-sm text-gold">Step {step + 1} of 3</div>
               <h2 className="font-display text-2xl mt-0.5">{s.title}</h2>
               <p className="text-white/75 text-sm mt-1 min-h-[40px]">{s.body}</p>
 
