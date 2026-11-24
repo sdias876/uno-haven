@@ -17,9 +17,11 @@ function Symbol({ value, color }) {
       );
     case 'reverse':
       return (
-        <svg viewBox="0 0 40 40" className="w-[2.6em] h-[2.6em]">
-          <path d="M8 24 L20 12 L20 18 L30 18 L30 24 Z" fill={fill} transform="rotate(-30 20 20)" />
-          <path d="M32 16 L20 28 L20 22 L10 22 L10 16 Z" fill={fill} transform="rotate(-30 20 20)" />
+        <svg viewBox="0 0 40 40" className="w-[2.8em] h-[2.8em]">
+          <g transform="rotate(-30 20 20)" stroke="#111" strokeWidth="1.2" strokeLinejoin="round">
+            <path d="M5 13 L15 4 L15 10 L33 10 L33 16 L15 16 L15 22 Z" fill={fill} />
+            <path d="M35 27 L25 36 L25 30 L7 30 L7 24 L25 24 L25 18 Z" fill={fill} />
+          </g>
         </svg>
       );
     case 'draw2':
@@ -56,7 +58,8 @@ const corner = (v) => ({ skip: '⊘', reverse: '⇄', draw2: '+2', wild: 'W', wi
  * Presentational card. `faceDown` shows the back. `chosenColor` tints a played wild.
  */
 export function Card({ card, size = 'md', faceDown = false, chosenColor, className = '', style, ...motionProps }) {
-  const s = SIZES[size];
+  // size: a preset name ('xs'…'lg') or a number = card width in px
+  const s = typeof size === 'number' ? { w: size, h: Math.round(size * 1.46), f: size * 0.148 } : SIZES[size];
   const dims = { width: s.w, height: s.h, fontSize: s.f };
   if (faceDown || !card) {
     return (

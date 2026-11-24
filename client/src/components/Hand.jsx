@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useRef, useState } from 'react';
 import { Card } from './Card.jsx';
+import { useViewport, handCardWidth } from '../lib/useViewport.js';
 
 const ORDER = { red: 0, yellow: 1, green: 2, blue: 3, wild: 4 };
 const VAL = (v) => (/^\d$/.test(v) ? Number(v) : { skip: 10, reverse: 11, draw2: 12, wild: 13, wild4: 14 }[v]);
@@ -23,18 +24,20 @@ function useWidth(ref) {
 export function Hand({ hand, playable, myTurn, hintCardId, onPlay, disabled }) {
   const ref = useRef(null);
   const width = useWidth(ref);
-  const size = width < 420 ? 'md' : 'lg';
-  const cardW = size === 'md' ? 74 : 92;
+  const vp = useViewport();
+  const cardW = handCardWidth(vp);
+  const cardH = Math.round(cardW * 1.46);
+  const size = cardW;
   const cards = sortHand(hand);
   const n = cards.length;
-  const spacing = n <= 1 ? 0 : Math.min(cardW * 0.7, (width - cardW - 44) / (n - 1));
+  const spacing = n <= 1 ? 0 : Math.min(cardW * 0.7, (width - cardW * 1.6) / (n - 1));
   const total = spacing * (n - 1);
   const maxAngle = Math.min(28, n * 2.6);
   const playableSet = new Set(playable);
   const [hover, setHover] = useState(null);
 
   return (
-    <div ref={ref} className="relative w-full isolate" style={{ height: size === 'md' ? 150 : 180 }}>
+    <div ref={ref} className="relative w-full isolate" style={{ height: cardH + 66 }}>
       <AnimatePresence initial={false}>
         {cards.map((card, i) => {
           const t = n <= 1 ? 0 : i / (n - 1) - 0.5; // -0.5..0.5

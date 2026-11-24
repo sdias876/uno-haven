@@ -6,6 +6,7 @@ import { sound, play } from '../lib/sound.js';
 import { useVoiceUno, voiceSupported } from '../lib/useVoiceUno.js';
 import { Card, COLOR_HEX, cardName } from './Card.jsx';
 import { Hand } from './Hand.jsx';
+import { useViewport, pileCardWidth } from '../lib/useViewport.js';
 import { ColorPicker, SwapPicker } from './Pickers.jsx';
 import { ChatPanel, EmoteBar, EmoteLayer } from './Social.jsx';
 import { Recap } from './Recap.jsx';
@@ -91,13 +92,13 @@ function Opponent({ seat, player, isTurn, vulnerable, onCatch, revealHand, timer
       </div>
       <div className="text-xs sm:text-sm font-bold max-w-[96px] truncate">{seat.name}</div>
       {revealHand && player?.hand ? (
-        <div className="flex -space-x-5 max-w-[150px] overflow-hidden">
-          {player.hand.slice(0, 10).map((c) => <Card key={c.id} card={c} size="xs" />)}
+        <div className="flex -space-x-8 max-w-[220px] overflow-hidden">
+          {player.hand.slice(0, 10).map((c) => <Card key={c.id} card={c} size="sm" />)}
         </div>
       ) : (
-        <div className="relative h-[38px] flex items-end justify-center" style={{ width: 24 + shown * 7 }}>
+        <div className="relative h-[56px] flex items-end justify-center" style={{ width: 36 + shown * 10 }}>
           {Array.from({ length: shown }).map((_, i) => (
-            <Card key={i} faceDown size="xs" className="!absolute bottom-0" style={{ left: i * 7, transform: `rotate(${(i - shown / 2) * 4}deg)`, width: 24, height: 36, fontSize: 4 }} />
+            <Card key={i} faceDown size="xs" className="!absolute bottom-0" style={{ left: i * 10, transform: `rotate(${(i - shown / 2) * 4}deg)`, width: 36, height: 52, fontSize: 5.5 }} />
           ))}
         </div>
       )}
@@ -114,22 +115,25 @@ function Opponent({ seat, player, isTurn, vulnerable, onCatch, revealHand, timer
 
 function CenterPiles({ game, canDraw, onDraw, lastPlayFrom }) {
   const discards = game.recentDiscards.slice(-4);
+  const pw = pileCardWidth(useViewport());
+  const ph = Math.round(pw * 1.46);
+  const ring = Math.round(pw * 3.3);
   return (
     <div className="relative flex items-center justify-center gap-6 sm:gap-10">
       {/* Direction ring + active color */}
-      <motion.div className="absolute w-[260px] h-[260px] sm:w-[320px] sm:h-[320px] rounded-full pointer-events-none"
+      <motion.div className="absolute rounded-full pointer-events-none"
         animate={{ rotate: game.direction === 1 ? 360 : -360 }} transition={{ repeat: Infinity, duration: 14, ease: 'linear' }}
-        style={{ border: `3px dashed ${COLOR_HEX[game.currentColor]}66` }}>
+        style={{ width: ring, height: ring, border: `3px dashed ${COLOR_HEX[game.currentColor]}66` }}>
         <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-xl" style={{ color: COLOR_HEX[game.currentColor] }}>{game.direction === 1 ? '➤' : '◀'}</span>
       </motion.div>
-      <div className="absolute w-[200px] h-[200px] sm:w-[250px] sm:h-[250px] rounded-full blur-3xl opacity-35 pointer-events-none transition-colors duration-500"
-        style={{ background: COLOR_HEX[game.currentColor] }} />
+      <div className="absolute rounded-full blur-3xl opacity-35 pointer-events-none transition-colors duration-500"
+        style={{ width: ring * 0.8, height: ring * 0.8, background: COLOR_HEX[game.currentColor] }} />
 
       {/* Draw pile */}
       <motion.button onClick={onDraw} disabled={!canDraw} whileHover={canDraw ? { y: -4, rotate: -2 } : {}} whileTap={canDraw ? { scale: 0.94 } : {}}
         className={`relative ${canDraw ? 'cursor-pointer' : 'cursor-default'}`} aria-label="Draw a card">
         {[2, 1, 0].map((i) => (
-          <Card key={i} faceDown size="md" className={i ? '!absolute' : ''} style={{ top: -i * 2, left: -i * 2 }} />
+          <Card key={i} faceDown size={pw} className={i ? '!absolute' : ''} style={{ top: -i * 2, left: -i * 2 }} />
         ))}
         {canDraw && <span className="absolute -bottom-7 left-1/2 -translate-x-1/2 text-xs font-bold text-gold whitespace-nowrap animate-pulse">
           {game.pendingDraw > 0 ? `Take +${game.pendingDraw}` : 'Tap to draw'}
@@ -138,7 +142,7 @@ function CenterPiles({ game, canDraw, onDraw, lastPlayFrom }) {
       </motion.button>
 
       {/* Discard pile */}
-      <div className="relative w-[74px] h-[108px]">
+      <div className="relative" style={{ width: pw, height: ph }}>
         <AnimatePresence initial={false}>
           {discards.map((c, i) => {
             const isTop = i === discards.length - 1;
@@ -149,7 +153,7 @@ function CenterPiles({ game, canDraw, onDraw, lastPlayFrom }) {
                 animate={{ y: 0, x: 0, scale: 1, rotate: rot, opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ type: 'spring', stiffness: 420, damping: 26 }}>
-                <Card card={c} size="md" chosenColor={isTop ? game.currentColor : undefined} />
+                <Card card={c} size={pw} chosenColor={isTop ? game.currentColor : undefined} />
               </motion.div>
             );
           })}
@@ -288,7 +292,7 @@ export function Table() {
       <div className="flex-1 flex flex-col items-center justify-center min-h-[220px]">
         <CenterPiles game={game} canDraw={canDraw} onDraw={actions.draw} lastPlayFrom={lastPlayFrom} />
         <motion.div key={status} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
-          className={`mt-10 px-4 py-1.5 rounded-full text-sm sm:text-base font-bold ${myTurn ? 'bg-gold text-felt-900 shadow-lg' : 'bg-black/30 text-white/85'}`}>
+          className={`mt-12 px-4 py-1.5 rounded-full text-sm sm:text-base font-bold ${myTurn ? 'bg-gold text-felt-900 shadow-lg' : 'bg-black/30 text-white/85'}`}>
           {status}{myTurn && secsLeft != null && room.settings.turnSeconds ? ` · ${secsLeft}s` : ''}
         </motion.div>
       </div>
@@ -328,7 +332,7 @@ export function Table() {
               <motion.button key="uno" onClick={doUno}
                 initial={{ scale: 0, rotate: -30 }} animate={{ scale: [1, 1.1, 1], rotate: 0 }} exit={{ scale: 0, rotate: 30 }}
                 transition={{ scale: { repeat: Infinity, duration: 0.8 }, rotate: { type: 'spring' } }}
-                className="absolute right-3 bottom-[170px] sm:right-8 sm:bottom-[200px] z-30 w-24 h-24 sm:w-28 sm:h-28 rounded-full font-display font-bold text-3xl text-white pulse-ring"
+                className="absolute right-3 -top-24 sm:right-8 sm:-top-28 z-30 w-24 h-24 sm:w-28 sm:h-28 rounded-full font-display font-bold text-3xl text-white pulse-ring"
                 style={{ background: 'radial-gradient(circle at 35% 30%, #ff7b6b, #e53935 55%, #a31515)', boxShadow: '0 8px 0 #7a0f0f, 0 14px 30px rgba(0,0,0,.5)', WebkitTextStroke: '1.5px #5a0a0a' }}
                 aria-label="Call UNO">
                 UNO!
