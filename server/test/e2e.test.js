@@ -89,3 +89,19 @@ test('AFK takeover: timer expiry lets a bot play the human turn', async () => {
   assert.ok(evs, 'takeover happened');
   a.disconnect(); b.disconnect();
 });
+
+test('smart bots adapt: strength rises after a human win, is reported to clients', async () => {
+  const { rooms: mgr } = await import('../src/index.js');
+  const a = await client();
+  const c = await emit(a, 'room:create', { name: 'Solo', skill: 0.5 });
+  await emit(a, 'lobby:addBot', {}); // default level = smart
+  const st = await nextState(a, (s) => s.room.seats.length === 2);
+  assert.equal(st.room.seats[1].botLevel, 'smart');
+  assert.equal(st.room.botStrength, 0.5);
+  const room = mgr.get(c.code);
+  room.adaptBots(room.seats[0]); // human won
+  assert.ok(room.botStrength > 0.5 && room.botTrend === 'up');
+  room.adaptBots(room.seats[1]); // bot won
+  assert.equal(room.botTrend, 'down');
+  a.disconnect();
+});

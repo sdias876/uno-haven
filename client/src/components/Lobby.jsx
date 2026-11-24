@@ -10,6 +10,7 @@ const RULES = [
   { key: 'jumpIn', icon: '⚡', title: 'Jump-In', desc: 'Hold an exact duplicate of the top card? Slam it down out of turn.' },
 ];
 const LEVELS = [
+  { key: 'smart', label: 'Auto', icon: '✨', desc: 'Adapts to how well the table plays' },
   { key: 'casual', label: 'Casual', icon: '😊', desc: 'Relaxed, forgets UNO sometimes' },
   { key: 'tactical', label: 'Tactical', icon: '🧠', desc: 'Tracks cards, saves wilds' },
   { key: 'ruthless', label: 'Ruthless', icon: '😈', desc: 'Disrupts colors, catches everything' },
@@ -92,7 +93,7 @@ export function Lobby() {
             {isHost && !full && (
               <div className="mt-3">
                 <div className="text-xs uppercase tracking-wider text-white/50 font-bold mb-1.5">Add a smart bot</div>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-4 gap-2">
                   {LEVELS.map((l) => (
                     <button key={l.key} onClick={() => actions.addBot(l.key)} className="btn-ghost !flex-col !gap-0 !py-2" title={l.desc}>
                       <span className="text-xl">{l.icon}</span><span className="text-sm">{l.label}</span>

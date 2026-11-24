@@ -2,7 +2,7 @@
 // A card: { id: string, color: 'red'|'yellow'|'green'|'blue'|'wild', value: string }
 // value ∈ '0'..'9' | 'skip' | 'reverse' | 'draw2' | 'wild' | 'wild4'
 
-import { randomInt } from 'node:crypto';
+import { randomInt } from '../util.js';
 
 export const COLORS = ['red', 'yellow', 'green', 'blue'];
 export const ACTIONS = ['skip', 'reverse', 'draw2'];

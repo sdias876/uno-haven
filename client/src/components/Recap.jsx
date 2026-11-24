@@ -34,6 +34,11 @@ export function Recap() {
           <div className="text-5xl mb-1">{iWon ? "🏆" : "🃏"}</div>
           <h2 className="font-display text-3xl sm:text-4xl">{iWon ? 'You win!' : `${r.winnerName.replace(' 🤖', '')} wins!`}</h2>
           <p className="text-white/70 mt-1">{r.score} points from the table · {r.totalTurns} turns</p>
+          {room.botTrend && (
+            <p className="mt-2 inline-block chip bg-white/10 !text-sm">
+              {room.botTrend === 'up' ? '📈 Auto bots will play a little tougher next round' : '📉 Auto bots will ease off a little next round'}
+            </p>
+          )}
         </div>
 
         <h3 className="font-display text-gold text-lg mt-6 mb-2">✨ Smart Match Recap</h3>

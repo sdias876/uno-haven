@@ -6,11 +6,26 @@
 import { COLORS, isWild, isNumber, cardLabel, cardPoints } from './cards.js';
 
 export const BOT_LEVELS = ['casual', 'tactical', 'ruthless'];
+/** 'smart' = adaptive: plays at a strength (0..1) that the room tunes after every match. */
+export const ALL_LEVELS = ['smart', ...BOT_LEVELS];
+
+/**
+ * Turn the adaptive 'smart' level into a concrete style for one decision.
+ * strength 0.1 → almost always casual; 0.95 → mostly ruthless.
+ */
+export function resolveLevel(level, strength = 0.45, rand = Math.random) {
+  if (level !== 'smart') return level;
+  const r = rand();
+  if (r < strength * strength) return 'ruthless';
+  if (r < strength) return 'tactical';
+  return 'casual';
+}
 
 const BOT_NAMES = {
   casual: ['Penny', 'Milo', 'Daisy', 'Otis', 'Juniper', 'Benny'],
   tactical: ['Atlas', 'Nova', 'Quill', 'Rook', 'Sage', 'Vega'],
   ruthless: ['Viper', 'Havoc', 'Blitz', 'Onyx', 'Reaper', 'Fang'],
+  smart: ['Pixel', 'Mochi', 'Echo', 'Juno', 'Ziggy', 'Kodi'],
 };
 export function botName(level, taken = []) {
   const pool = BOT_NAMES[level] ?? BOT_NAMES.tactical;

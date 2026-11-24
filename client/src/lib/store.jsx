@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { socket, send, session, prefs } from './socket.js';
+import { net, send, session, prefs } from './socket.js';
 import { play, say } from './sound.js';
 
 const Ctx = createContext(null);
@@ -9,7 +9,9 @@ let uid = 0;
 const nid = () => `${Date.now()}_${uid++}`;
 
 export function GameProvider({ children }) {
-  const [connected, setConnected] = useState(socket.connected);
+  const [connected, setConnected] = useState(net.connected);
+  const [offline, setOffline] = useState(typeof navigator !== 'undefined' && navigator.onLine === false);
+  const [mode, setMode] = useState(net.mode); // 'online' | 'local'
   const [room, setRoom] = useState(null);
   const [game, setGame] = useState(null);
   const [me, setMe] = useState(null);
@@ -45,6 +47,7 @@ export function GameProvider({ children }) {
   useEffect(() => {
     const onConnect = async () => {
       setConnected(true);
+      if (net.mode !== 'online') return;
       const s = session.get();
       if (s?.code) {
         const res = await send('room:join', { code: s.code, token: s.token, name: s.name, avatar: s.avatar });
@@ -60,6 +63,8 @@ export function GameProvider({ children }) {
       const prev = stateRef.current;
       if (game && me?.id && game.turnPlayerId === me.id && prev.game?.turnPlayerId !== me.id && game.phase === 'playing') play('turn');
       setRoom(room); setGame(game); setMe(me);
+      // Remember how strong the adaptive bots got, so the next solo game starts there
+      if (room?.phase === 'ended' && typeof room.botStrength === 'number' && room.botTrend) prefs.set('skill', room.botStrength);
     };
     const onChat = (msg) => setChat((c) => [...c.slice(-79), msg]);
     const onEmote = (e) => {
@@ -99,17 +104,23 @@ export function GameProvider({ children }) {
         }
       }
     };
-    socket.on('connect', onConnect);
-    socket.on('disconnect', onDisconnect);
-    socket.on('room:state', onState);
-    socket.on('social:chat', onChat);
-    socket.on('social:emote', onEmote);
-    socket.on('game:fx', onFx);
-    if (socket.connected) onConnect();
+    const onOnline = () => setOffline(false);
+    const onOffline = () => setOffline(true);
+    net.on('connect', onConnect);
+    net.on('disconnect', onDisconnect);
+    net.on('room:state', onState);
+    net.on('social:chat', onChat);
+    net.on('social:emote', onEmote);
+    net.on('game:fx', onFx);
+    window.addEventListener('online', onOnline);
+    window.addEventListener('offline', onOffline);
+    if (net.connected) onConnect();
     return () => {
-      socket.off('connect', onConnect); socket.off('disconnect', onDisconnect);
-      socket.off('room:state', onState); socket.off('social:chat', onChat);
-      socket.off('social:emote', onEmote); socket.off('game:fx', onFx);
+      net.off('connect', onConnect); net.off('disconnect', onDisconnect);
+      net.off('room:state', onState); net.off('social:chat', onChat);
+      net.off('social:emote', onEmote); net.off('game:fx', onFx);
+      window.removeEventListener('online', onOnline);
+      window.removeEventListener('offline', onOffline);
     };
   }, [banner, toast, nameOf]);
 
@@ -122,24 +133,31 @@ export function GameProvider({ children }) {
 
   const actions = useMemo(() => ({
     async createRoom() {
+      if (net.mode !== 'online') { net.useOnline(); setMode('online'); setConnected(net.connected); }
       const res = await act('room:create', profile);
       if (!res.error) { session.set({ code: res.code, token: res.token, ...profile }); setChat(res.chat ?? []); }
       return res;
     },
     async joinRoom(code) {
+      if (net.mode !== 'online') { net.useOnline(); setMode('online'); setConnected(net.connected); }
       const res = await act('room:join', { code: code.trim().toUpperCase(), ...profile });
       if (!res.error) { session.set({ code: res.code, token: res.token ?? null, ...profile }); setChat(res.chat ?? []); }
       return res;
     },
-    async quickPlay(levels = ['tactical', 'tactical', 'casual'], rules) {
-      const res = await actions.createRoom();
+    /** Solo vs bots runs entirely in this browser: instant start, works offline. */
+    async quickPlay(levels = ['smart', 'smart', 'smart'], rules) {
+      await net.useLocal();
+      setMode('local'); setConnected(true);
+      const res = await act('room:create', { ...profile, skill: prefs.get('skill', 0.45) });
       if (res.error) return res;
+      setChat(res.chat ?? []);
       for (const level of levels) await send('lobby:addBot', { level });
       if (rules) await send('lobby:rules', { rules });
       return act('lobby:start');
     },
     async leave() {
       await send('room:leave');
+      if (net.mode === 'local') { net.useOnline(); setMode('online'); setConnected(net.connected); }
       session.clear();
       setRoom(null); setGame(null); setMe(null); setChat([]);
       const url = new URL(window.location.href); url.searchParams.delete('room');
@@ -167,6 +185,6 @@ export function GameProvider({ children }) {
     emote: (emoji) => send('social:emote', { emoji }),
   }), [act, profile]);
 
-  const value = { connected, room, game, me, chat, toasts, banners, emotes, shake, lastFx, profile, setProfile, actions, toast, nameOf };
+  const value = { connected, offline, mode, room, game, me, chat, toasts, banners, emotes, shake, lastFx, profile, setProfile, actions, toast, nameOf };
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

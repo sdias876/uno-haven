@@ -14,6 +14,13 @@ UNO Haven is a multiplayer UNO-style card game that runs in the browser. Each mo
 
 ## Features
 
+**Smart, but simple: the clever parts run in the background**
+- **Play now runs on your device.** Solo games use the same rules engine and bots as the server, running inside your browser. Games start instantly with no lag, and they keep working with no internet. Playing with friends uses the online server.
+- **Installable app.** Add it to the home screen on phones, tablets and Chromebooks, or use 📲 Install app in Chrome or Edge. It opens full screen like a native app, and once installed it loads even when you're offline.
+- **Auto bots that adapt.** These are the default. After you win they play a little tougher, and after you lose they ease off. The level is remembered between games, so nobody has to pick a difficulty.
+- **Tips at the right moment.** The first time a Skip, +4, stack, 7-swap, missed UNO and so on happens, a one-line tip explains it. Each tip shows only once.
+- **One ☰ menu.** Sound, Smart Coach, tips, voice UNO, chat, invite and leave all live in one menu, so the table shows only the game.
+
 **Easy to understand**
 - The table stays uncluttered: your fanned hand at the bottom, the draw and discard piles in the center, and a glowing ring that shows the active color and spins in the direction of play.
 - The **server** works out which of your cards are legal. Those cards glow and lift up; the rest dim on your turn.
@@ -54,7 +61,9 @@ uno-haven/
 │   └── SCHEMA.md             # room/game state schema, socket protocol, optional Postgres schema
 ├── server/
 │   ├── src/
-│   │   ├── index.js          # Express + Socket.io, event routing, serves client/dist in prod
+│   │   ├── index.js          # Express + Socket.io, serves client/dist in prod
+│   │   ├── handlers.js       # socket event routing (shared with the in-browser offline server)
+│   │   ├── util.js           # Web Crypto randomness (works in Node and browsers)
 │   │   ├── rooms.js          # rooms, seats, bots, turn timers, AFK/reconnect, spectators, chat
 │   │   └── game/
 │   │       ├── cards.js      # 108-card deck, crypto shuffle, points
@@ -72,6 +81,9 @@ uno-haven/
         │   ├── socket.js     # socket singleton, ack→promise helper, session/prefs storage
         │   ├── store.jsx     # GameProvider: state, fx → sounds/banners/shake, actions
         │   ├── sound.js      # Web Audio synth (snap, +4 boom, chime, UNO fanfare…) + mute
+        │   ├── local.js      # offline mode: runs server/src rooms+engine in the browser
+        │   ├── tips.js       # first-time tips
+        │   ├── install.js    # "Install app" prompt (PWA)
         │   └── useVoiceUno.js
         └── components/
             ├── Home.jsx      # name/avatar, quick play, private table, join, tutorial

@@ -10,6 +10,7 @@ import { useViewport, pileCardWidth } from '../lib/useViewport.js';
 import { ColorPicker, SwapPicker } from './Pickers.jsx';
 import { ChatPanel, EmoteBar, EmoteLayer } from './Social.jsx';
 import { Recap } from './Recap.jsx';
+import { useTips } from '../lib/tips.js';
 
 const hash = (s) => [...s].reduce((h, c) => (h * 31 + c.charCodeAt(0)) | 0, 7);
 const valueName = (v) => ({ skip: 'Skip', reverse: 'Reverse', draw2: '+2', wild: 'Wild', wild4: '+4' }[v] ?? v);
@@ -35,9 +36,30 @@ export function useMuted() {
   return [m, (v) => sound.setMuted(v)];
 }
 
-function TopBar({ onChat, chatOpen, voiceOn, setVoiceOn, listening }) {
-  const { room, actions, toast } = useGame();
+function MenuRow({ icon, label, sub, on, onClick, danger }) {
+  return (
+    <button onClick={onClick} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl text-left hover:bg-white/10 ${danger ? 'text-rose-300' : ''}`}>
+      <span className="text-xl w-7 text-center">{icon}</span>
+      <span className="flex-1 min-w-0">
+        <span className="block font-bold">{label}</span>
+        {sub && <span className="block text-xs text-white/55">{sub}</span>}
+      </span>
+      {on !== undefined && (
+        <span className={`relative w-11 h-6 rounded-full shrink-0 transition ${on ? 'bg-emerald-500' : 'bg-white/20'}`}>
+          <span className="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all" style={{ left: on ? 22 : 2 }} />
+        </span>
+      )}
+    </button>
+  );
+}
+
+/** One ☰ menu holds everything that isn't the game itself. */
+function TopBar({ onChat, unread, voiceOn, setVoiceOn, listening, coachOn, setCoachOn, tipsOn, setTipsOn }) {
+  const { room, actions, toast, mode } = useGame();
   const [muted, setMuted] = useMuted();
+  const [open, setOpen] = useState(false);
+  const [confirmLeave, setConfirmLeave] = useState(false);
+  const online = mode === 'online';
   const invite = async () => {
     const url = `${window.location.origin}/?room=${room.code}`;
     try {
@@ -45,27 +67,42 @@ function TopBar({ onChat, chatOpen, voiceOn, setVoiceOn, listening }) {
       else { await navigator.clipboard.writeText(url); toast('Invite link copied!', 'good'); }
     } catch { /* cancelled */ }
   };
+  const close = () => { setOpen(false); setConfirmLeave(false); };
   return (
-    <header className="relative z-30 flex items-center gap-2 px-3 py-2">
+    <header className="relative z-40 flex items-center gap-2 px-3 py-2">
       <div className="font-display text-xl sm:text-2xl font-bold tracking-wide">
         <span className="text-uno-red">U</span><span className="text-uno-yellow">N</span><span className="text-uno-green">O</span>
         <span className="text-white/80 text-base sm:text-lg ml-1">Haven</span>
       </div>
-      <button onClick={invite} className="chip bg-white/10 hover:bg-white/20 ml-1 font-mono tracking-widest" title="Copy invite link">
-        {room.code} 🔗
+      {!online && <span className="chip bg-white/10 text-white/70">Solo · works offline</span>}
+      {online && room.spectators.length > 0 && <span className="chip bg-white/10">👀 {room.spectators.length}</span>}
+      {voiceOn && listening && <span className="chip bg-emerald-500/30" title="Say “UNO!”">🎙️</span>}
+      <button onClick={() => setOpen((o) => !o)} aria-label="Menu" aria-expanded={open}
+        className="ml-auto relative btn-ghost !px-3 !py-2 text-lg leading-none">
+        ☰
+        {unread > 0 && !open && <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-uno-red text-[11px] font-bold grid place-items-center">{unread}</span>}
       </button>
-      {room.spectators.length > 0 && <span className="chip bg-white/10" title={room.spectators.map((s) => s.name).join(', ')}>👀 {room.spectators.length}</span>}
-      <div className="ml-auto flex items-center gap-1.5">
-        {voiceSupported && (
-          <button onClick={() => setVoiceOn(!voiceOn)} className={`btn-ghost !px-2.5 !py-1.5 ${voiceOn ? '!bg-emerald-500/30' : ''}`}
-            title="Say “UNO!” out loud">
-            {voiceOn ? (listening ? '🎙️' : '🎤') : '🎤'}<span className="hidden sm:inline text-sm">{voiceOn ? 'Listening' : 'Voice'}</span>
-          </button>
+      <AnimatePresence>
+        {open && (
+          <>
+            <motion.div className="fixed inset-0 z-40" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={close} />
+            <motion.nav className="glass !bg-felt-800/95 absolute right-3 top-14 z-50 w-72 rounded-3xl p-2 shadow-2xl"
+              initial={{ opacity: 0, y: -10, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -10, scale: 0.97 }}
+              transition={{ type: 'spring', stiffness: 500, damping: 34 }}>
+              {online && <MenuRow icon="🔗" label="Invite friends" sub={`Table ${room.code} · copies a link`} onClick={() => { invite(); close(); }} />}
+              {online && <MenuRow icon="💬" label={`Chat${unread ? ` (${unread} new)` : ''}`} onClick={() => { onChat(); close(); }} />}
+              <MenuRow icon={muted ? '🔇' : '🔊'} label="Sound" on={!muted} onClick={() => setMuted(!muted)} />
+              <MenuRow icon="🦉" label="Smart Coach" sub="Shows the 💡 hint button" on={coachOn} onClick={() => setCoachOn(!coachOn)} />
+              <MenuRow icon="💡" label="Tips for new players" sub="Explains special cards the first time" on={tipsOn} onClick={() => setTipsOn(!tipsOn)} />
+              {voiceSupported && <MenuRow icon="🎤" label="Voice UNO" sub="Shout “UNO!” instead of tapping" on={voiceOn} onClick={() => setVoiceOn(!voiceOn)} />}
+              <div className="h-px bg-white/10 my-1" />
+              {!confirmLeave
+                ? <MenuRow icon="🚪" label="Leave table" onClick={() => setConfirmLeave(true)} />
+                : <MenuRow icon="⚠️" label="Tap again to leave" sub="Your seat goes to a bot" danger onClick={() => { close(); actions.leave(); }} />}
+            </motion.nav>
+          </>
         )}
-        <button onClick={() => setMuted(!muted)} className="btn-ghost !px-2.5 !py-1.5" aria-label="Toggle sound">{muted ? '🔇' : '🔊'}</button>
-        <button onClick={onChat} className={`btn-ghost !px-2.5 !py-1.5 ${chatOpen ? '!bg-white/25' : ''}`} aria-label="Chat">💬</button>
-        <button onClick={() => { if (confirm('Leave this table?')) actions.leave(); }} className="btn-ghost !px-2.5 !py-1.5" aria-label="Leave">🚪</button>
-      </div>
+      </AnimatePresence>
     </header>
   );
 }
@@ -183,9 +220,31 @@ function Coach({ tip, onClose }) {
   );
 }
 
+function TipBubble({ tip, onClose }) {
+  return (
+    <AnimatePresence>
+      {tip && (
+        <motion.div key={tip.key} initial={{ y: 16, opacity: 0, scale: 0.95 }} animate={{ y: 0, opacity: 1, scale: 1 }} exit={{ y: 8, opacity: 0 }}
+          className="glass rounded-2xl px-4 py-2.5 max-w-md mx-auto flex items-center gap-3 shadow-2xl">
+          <span className="text-xl">💡</span>
+          <div className="text-sm leading-snug flex-1">{tip.text}</div>
+          <button onClick={onClose} className="chip bg-white/15 hover:bg-white/25 shrink-0">Got it</button>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
 export function Table() {
-  const { room, game, me, actions, shake, lastFx } = useGame();
+  const { room, game, me, actions, shake, lastFx, chat, mode } = useGame();
   const [chatOpen, setChatOpen] = useState(false);
+  const [emotesOpen, setEmotesOpen] = useState(false);
+  const [tipsOn, setTipsOn] = useState(() => prefs.get('tips', true));
+  const { tip, show: showTip, dismiss: dismissTip } = useTips(tipsOn);
+  const chatCount = chat.filter((m) => !m.system).length;
+  const [seenChat, setSeenChat] = useState(chatCount);
+  useEffect(() => { if (chatOpen) setSeenChat(chatCount); }, [chatOpen, chatCount]);
+  const unread = Math.max(0, chatCount - seenChat);
   const [pendingWild, setPendingWild] = useState(null);
   const [pendingSeven, setPendingSeven] = useState(null);
   const [hint, setHint] = useState(null);
@@ -195,6 +254,7 @@ export function Table() {
 
   useEffect(() => { prefs.set('coach', coachOn); }, [coachOn]);
   useEffect(() => { prefs.set('voice', voiceOn); }, [voiceOn]);
+  useEffect(() => { prefs.set('tips', tipsOn); }, [tipsOn]);
   useEffect(() => { if (!shake) return; setShaking(true); const t = setTimeout(() => setShaking(false), 560); return () => clearTimeout(t); }, [shake]);
 
   const myId = me?.id;
@@ -248,6 +308,35 @@ export function Table() {
     if (r.hint) setHint(r.hint);
   };
 
+  // ---- Just-in-time tips ----
+  const myTurns = useRef(0);
+  useEffect(() => {
+    if (spectator) return;
+    for (const e of lastFx) {
+      if (e.type === 'play') {
+        const v = e.card.value;
+        if (v === 'draw2') showTip(game?.rules.stacking ? 'draw2Stack' : 'draw2');
+        else if (['skip', 'reverse', 'wild', 'wild4'].includes(v)) showTip(v);
+      }
+      if (e.type === 'swap') showTip('swap');
+      if (e.type === 'rotate') showTip('rotate');
+      if (e.type === 'jumpIn') showTip('jumpIn');
+      if (e.type === 'caught' && e.playerId === myId) showTip('caughtMe');
+    }
+  }, [lastFx]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (!game || spectator || game.phase !== 'playing') return;
+    if (game.unoVulnerable && game.unoVulnerable !== myId) showTip('catchable');
+    if (!myTurn) return;
+    myTurns.current++;
+    if (myTurns.current === 1) showTip('firstTurn');
+    else if (canPreCall) showTip('unoTime');
+    else if (game.pendingDraw > 0 && game.playable.length) showTip('stackMe');
+    else if (game.drawnCardId) showTip('drawnPlayable');
+    else if (!game.playable.length && !game.pendingDraw) showTip('noMatch');
+    else if (myTurns.current >= 4 && coachOn) showTip('smartHint');
+  }, [game?.turnNumber, game?.drawnCardId, game?.unoVulnerable, myTurn]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Keyboard shortcuts
   useEffect(() => {
     const onKey = (e) => {
@@ -276,7 +365,8 @@ export function Table() {
 
   return (
     <div className={`felt h-full flex flex-col overflow-hidden ${shaking ? 'shake' : ''}`}>
-      <TopBar onChat={() => setChatOpen((o) => !o)} chatOpen={chatOpen} voiceOn={voiceOn} setVoiceOn={setVoiceOn} listening={listening} />
+      <TopBar onChat={() => setChatOpen((o) => !o)} unread={unread} voiceOn={voiceOn} setVoiceOn={setVoiceOn} listening={listening}
+        coachOn={coachOn} setCoachOn={setCoachOn} tipsOn={tipsOn} setTipsOn={setTipsOn} />
 
       {/* Opponents */}
       <div className="flex justify-center gap-2 sm:gap-6 px-2 pt-1 flex-wrap">
@@ -292,7 +382,7 @@ export function Table() {
       <div className="flex-1 flex flex-col items-center justify-center min-h-[220px]">
         <CenterPiles game={game} canDraw={canDraw} onDraw={actions.draw} lastPlayFrom={lastPlayFrom} />
         <motion.div key={status} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
-          className={`mt-12 px-4 py-1.5 rounded-full text-sm sm:text-base font-bold ${myTurn ? 'bg-gold text-felt-900 shadow-lg' : 'bg-black/30 text-white/85'}`}>
+          className={`mt-9 px-4 py-1.5 rounded-full text-sm sm:text-base font-bold ${myTurn ? 'bg-gold text-felt-900 shadow-lg' : 'bg-black/30 text-white/85'}`}>
           {status}{myTurn && secsLeft != null && room.settings.turnSeconds ? ` · ${secsLeft}s` : ''}
         </motion.div>
       </div>
@@ -300,20 +390,29 @@ export function Table() {
       {/* My area */}
       {!spectator ? (
         <div className="relative pb-[max(8px,env(safe-area-inset-bottom))]">
-          <div className="px-3 mb-2"><Coach tip={hint?.tip} onClose={() => setHint(null)} /></div>
-          <div className="flex items-center justify-center gap-2 px-3 flex-wrap">
-            {coachOn && game.phase === 'playing' && (
-              <button onClick={askHint} className="btn-ghost !py-2 text-sm" title="Smart Hint (H)">💡 Smart Hint</button>
+          {/* Coach / tips: beside the table on wide screens, above the hand on phones */}
+          <div className="px-3 mb-2 md:mb-0 md:fixed md:left-4 md:top-1/2 md:-translate-y-1/2 md:w-72 md:px-0 z-30">
+            {hint?.tip ? <Coach tip={hint.tip} onClose={() => setHint(null)} /> : <TipBubble tip={tip} onClose={dismissTip} />}
+          </div>
+          <div className="flex items-center justify-center gap-2 px-3 min-h-[40px]">
+            <span className={`md:hidden chip ${myTurn ? 'bg-gold text-felt-900' : 'bg-black/40'}`}>{seatsById[myId]?.avatar} {myCount}</span>
+            {coachOn && myTurn && (
+              <button onClick={askHint} className="btn-ghost !py-2 text-sm" title="Smart Hint (H)">💡 Hint</button>
             )}
             {game.canPass && <button onClick={actions.pass} className="btn-ghost !py-2 text-sm">Pass ⏭</button>}
-            {canDraw && game.playable.length > 0 && game.pendingDraw === 0 && (
-              <button onClick={actions.draw} className="btn-ghost !py-2 text-sm">Draw 🂠</button>
+            {mode === 'online' && (
+              <div className="relative">
+                <button onClick={() => setEmotesOpen((o) => !o)} className={`btn-ghost !py-2 !px-3 text-lg ${emotesOpen ? '!bg-white/25' : ''}`} aria-label="Reactions">😊</button>
+                <AnimatePresence>
+                  {emotesOpen && (
+                    <motion.div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-40" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }}
+                      onClick={() => setEmotesOpen(false)}>
+                      <EmoteBar compact />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             )}
-            <span className={`md:hidden chip ${myTurn ? 'bg-gold text-felt-900' : 'bg-black/40'}`}>{seatsById[myId]?.avatar} {myCount}</span>
-            <button onClick={() => setCoachOn(!coachOn)} className="btn-ghost !py-2 !px-2.5 text-xs opacity-70" title="Toggle Smart Coach">
-              {coachOn ? 'Coach on' : 'Coach off'}
-            </button>
-            <div className="hidden sm:block"><EmoteBar compact /></div>
           </div>
           <div className="relative">
             <div className="absolute left-3 top-5 z-10 hidden md:flex items-center gap-2">
@@ -324,7 +423,6 @@ export function Table() {
             </div>
             <Hand hand={game.hand} playable={game.playable} myTurn={myTurn} hintCardId={hint?.cardId} onPlay={handlePlay} disabled={game.phase !== 'playing'} />
           </div>
-          <div className="sm:hidden flex justify-center pb-1"><EmoteBar compact /></div>
 
           {/* UNO panic button */}
           <AnimatePresence>

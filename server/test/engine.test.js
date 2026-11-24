@@ -231,3 +231,23 @@ for (const level of BOT_LEVELS) {
     });
   }
 }
+
+test('smart bots: strength maps to casual/tactical/ruthless mix', async () => {
+  const { resolveLevel } = await import('../src/game/ai.js');
+  const count = (strength) => {
+    const c = { casual: 0, tactical: 0, ruthless: 0 };
+    for (let i = 0; i < 4000; i++) c[resolveLevel('smart', strength)]++;
+    return c;
+  };
+  const weak = count(0.1), strong = count(0.95);
+  assert.ok(weak.casual > 3400, `weak should be mostly casual: ${JSON.stringify(weak)}`);
+  assert.ok(strong.ruthless > 3300, `strong should be mostly ruthless: ${JSON.stringify(strong)}`);
+  assert.equal(resolveLevel('tactical', 0.1), 'tactical');
+});
+
+test('util randomInt is in range and roughly uniform', async () => {
+  const { randomInt } = await import('../src/util.js');
+  const b = [0, 0, 0, 0];
+  for (let i = 0; i < 8000; i++) b[randomInt(4)]++;
+  for (const n of b) assert.ok(n > 1700 && n < 2300, JSON.stringify(b));
+});

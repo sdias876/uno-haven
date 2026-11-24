@@ -1,8 +1,8 @@
 // Room manager: lobby, seats, bots, timers, AFK takeover, reconnection, spectators, chat.
 
-import { randomBytes, randomInt } from 'node:crypto';
+import { randomInt, randomHex, randomToken } from './util.js';
 import { UnoGame, DEFAULT_RULES } from './game/engine.js';
-import { chooseBotMove, coachHint, botName, botRemembersUno, botCatchDelay, BOT_LEVELS } from './game/ai.js';
+import { chooseBotMove, coachHint, botName, botRemembersUno, botCatchDelay, ALL_LEVELS, resolveLevel } from './game/ai.js';
 
 export const MAX_SEATS = 6;
 const RECLAIM_MS = 60_000;
@@ -10,8 +10,9 @@ const EMPTY_ROOM_TTL_MS = 5 * 60_000;
 const EMOTES = ['👍', '😂', '😱', '🔥', '😈', '🙏', '👏', '😭', '🎉', '💀'];
 const AVATARS = ['🦊', '🐼', '🐯', '🐸', '🦉', '🐙', '🦄', '🐨', '🐵', '🐧', '🦁', '🐳'];
 
-const id = (prefix) => `${prefix}_${randomBytes(6).toString('hex')}`;
-const token = () => randomBytes(18).toString('base64url');
+const clampStrength = (v) => Math.max(0.1, Math.min(0.95, Number(v) || 0.45));
+const id = (prefix) => `${prefix}_${randomHex(6)}`;
+const token = () => randomToken();
 const clean = (s, max = 20) => String(s ?? '').replace(/[<>]/g, '').trim().slice(0, max);
 
 function roomCode(existing) {
@@ -26,9 +27,9 @@ export class RoomManager {
     this.io = io;
     this.rooms = new Map();
   }
-  create() {
+  create(opts = {}) {
     const code = roomCode(this.rooms);
-    const room = new Room(code, this);
+    const room = new Room(code, this, opts);
     this.rooms.set(code, room);
     return room;
   }
@@ -41,8 +42,11 @@ export class RoomManager {
 }
 
 class Room {
-  constructor(code, manager) {
+  constructor(code, manager, { skill } = {}) {
     this.code = code;
+    // Adaptive bot strength (0..1). Starts from the player's saved skill, tuned after each match.
+    this.botStrength = clampStrength(typeof skill === 'number' ? skill : 0.45);
+    this.botTrend = null;
     this.manager = manager;
     this.io = manager.io;
     this.seats = [];            // ordered seats (players)
@@ -194,7 +198,7 @@ class Room {
   addBot(level) {
     if (this.phase === 'playing') return { error: 'Game in progress' };
     if (this.seats.length >= MAX_SEATS) return { error: 'Table is full' };
-    const lvl = BOT_LEVELS.includes(level) ? level : 'tactical';
+    const lvl = ALL_LEVELS.includes(level) ? level : 'smart';
     const seat = {
       id: id('bot'), token: null, name: botName(lvl, this.seats.map((s) => s.name)), avatar: '🤖',
       isBot: true, botLevel: lvl, socketId: null, connected: true, autopilot: false, afkStrikes: 0,
@@ -218,7 +222,7 @@ class Room {
 
   setBotLevel(pid, level) {
     const seat = this.seatById(pid);
-    if (!seat?.isBot || !BOT_LEVELS.includes(level)) return { error: 'Invalid' };
+    if (!seat?.isBot || !ALL_LEVELS.includes(level)) return { error: 'Invalid' };
     seat.botLevel = level;
     seat.name = botName(level, this.seats.filter((s) => s !== seat).map((s) => s.name));
     return { ok: true };
@@ -308,6 +312,7 @@ class Room {
       this.phase = 'ended';
       this.recap = this.game.recap();
       const w = this.seatById(this.game.winnerId);
+      this.adaptBots(w);
       this.system(`🏆 ${w?.name ?? 'Someone'} wins with ${this.recap.score} points!`);
       this.broadcast();
       return;
@@ -316,6 +321,15 @@ class Room {
     // uno / catch don't change whose turn it is — keep the running timer
     if (kind !== 'uno' && kind !== 'catch') this.scheduleTurn();
     this.broadcast();
+  }
+
+  /** After a match, Smart bots get tougher if a human won, gentler if a bot won. */
+  adaptBots(winnerSeat) {
+    if (!this.seats.some((s) => s.isBot && s.botLevel === 'smart')) { this.botTrend = null; return; }
+    const before = this.botStrength;
+    const humanWon = winnerSeat && !winnerSeat.isBot;
+    this.botStrength = clampStrength(before + (humanWon ? 0.12 : -0.1));
+    this.botTrend = this.botStrength > before ? 'up' : this.botStrength < before ? 'down' : null;
   }
 
   /** Bots pounce on anyone who forgot to call UNO. */
@@ -332,7 +346,7 @@ class Room {
     }
     for (const s of this.seats) {
       if (!s.isBot || s.id === target) continue;
-      const delay = botCatchDelay(s.botLevel);
+      const delay = botCatchDelay(resolveLevel(s.botLevel, this.botStrength));
       if (delay == null) continue;
       this.timers.catch.push(setTimeout(() => this.safely(() => {
         if (this.phase === 'playing' && this.game.unoVulnerable === target) this.apply(s.id, 'catch', { targetId: target });
@@ -348,7 +362,7 @@ class Room {
     const cur = this.seatById(this.game.current.id);
     if (!cur) return;
     if (cur.isBot || cur.autopilot) {
-      const base = cur.isBot ? { casual: 1300, tactical: 1000, ruthless: 800 }[cur.botLevel] : 900;
+      const base = cur.isBot ? ({ casual: 1300, tactical: 1000, ruthless: 800, smart: 1000 }[cur.botLevel] ?? 1000) : 900;
       this.timers.bot = setTimeout(() => this.safely(() => this.botTurn(cur.id)), base + Math.random() * 500);
       return;
     }
@@ -369,7 +383,7 @@ class Room {
   botTurn(pid, levelOverride) {
     if (this.phase !== 'playing' || this.game.current.id !== pid) return;
     const seat = this.seatById(pid);
-    const level = levelOverride ?? seat?.botLevel ?? 'tactical';
+    const level = resolveLevel(levelOverride ?? seat?.botLevel ?? 'tactical', this.botStrength);
     const g = this.game;
     const move = chooseBotMove(g, pid, level);
     if (move.type === 'play') {
@@ -461,6 +475,8 @@ class Room {
       settings: this.settings,
       maxSeats: MAX_SEATS,
       matchNumber: this.matchNumber,
+      botStrength: Math.round(this.botStrength * 100) / 100,
+      botTrend: this.botTrend,
       turnMsLeft: this.turnEndsAt ? Math.max(0, this.turnEndsAt - Date.now()) : null,
       seats: this.seats.map((s) => ({
         id: s.id, name: s.name, avatar: s.avatar, isBot: s.isBot, botLevel: s.botLevel,
