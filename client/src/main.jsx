@@ -3,6 +3,10 @@ import { createRoot } from 'react-dom/client';
 import { MotionConfig } from 'framer-motion';
 import App from './App.jsx';
 import '@fontsource/lilita-one/latin-400.css';
+// Old addresses (incl. installed copies of the app) move to the main address.
+if (/^(uno-haven|ek-haven)\.onrender\.com$/.test(location.hostname)) {
+  location.replace(`https://ek.sedigitaltransformation.com${location.pathname}${location.search}${location.hash}`);
+}
 import '@fontsource-variable/outfit';
 import '@fontsource/bebas-neue/latin-400.css';
 import '@fontsource/lobster/latin-400.css';

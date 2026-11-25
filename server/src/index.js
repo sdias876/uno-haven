@@ -30,7 +30,10 @@ if (CANONICAL) {
   const canonHost = new URL(CANONICAL).host;
   app.use((req, res, next) => {
     const host = String(req.headers.host || '').toLowerCase();
-    if (req.method === 'GET' && host.endsWith('.onrender.com') && host !== canonHost && !/^\/(api|socket\.io|healthz)/.test(req.path)) {
+    // Only page visits move; files (incl. the offline app's sw.js and precache) are still served so installed
+    // copies can update themselves, and the updated app then moves to the main address on its own.
+    const isPage = req.headers['sec-fetch-mode'] === 'navigate' || (!path.extname(req.path) && /text\/html/.test(req.headers.accept || ''));
+    if (req.method === 'GET' && isPage && host.endsWith('.onrender.com') && host !== canonHost && !/^\/(api|socket\.io|healthz)/.test(req.path)) {
       return res.redirect(301, CANONICAL + req.originalUrl);
     }
     next();
