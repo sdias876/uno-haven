@@ -98,8 +98,8 @@ export function GameProvider({ children }) {
           case 'swap': play('swap'); banner('Hands swapped!', 'yellow'); break;
           case 'rotate': play('swap'); banner('Hands rotate!', 'yellow'); break;
           case 'jumpIn': play('snap'); banner(`${nameOf(e.playerId)} jumped in!`, 'yellow'); break;
-          case 'uno': play('uno'); say('UNO!'); banner(`${nameOf(e.playerId)}: UNO!`, 'gold'); break;
-          case 'unoReady': if (e.playerId === myId) toast("UNO armed — play your card!", 'good'); break;
+          case 'uno': play('uno'); say('Ek!'); banner(`${nameOf(e.playerId)}: EK!`, 'gold'); break;
+          case 'unoReady': if (e.playerId === myId) toast("Ek called — play your card!", 'good'); break;
           case 'caught': play('caught'); toast(`${nameOf(e.by)} caught ${nameOf(e.playerId)}! +2`, 'bad'); break;
           case 'takeover': toast(e.playerId === myId ? '⏱️ Time! Smart autopilot played for you' : `🤖 Autopilot is covering for ${nameOf(e.playerId)}`, 'info'); break;
           case 'reconnected': toast(`${nameOf(e.playerId)} reconnected`, 'good'); break;

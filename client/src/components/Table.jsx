@@ -65,7 +65,7 @@ function TopBar({ onChat, unread, voiceOn, setVoiceOn, listening, coachOn, setCo
   const invite = async () => {
     const url = `${window.location.origin}/?room=${room.code}`;
     try {
-      if (navigator.share && /Mobi/i.test(navigator.userAgent)) await navigator.share({ title: 'Join my UNO table', url });
+      if (navigator.share && /Mobi/i.test(navigator.userAgent)) await navigator.share({ title: 'Join my Ek Haven table', url });
       else { await navigator.clipboard.writeText(url); toast('Invite link copied!', 'good'); }
     } catch { /* cancelled */ }
   };
@@ -75,7 +75,7 @@ function TopBar({ onChat, unread, voiceOn, setVoiceOn, listening, coachOn, setCo
       <Logo size={30} />
       {!online && <span className="chip bg-white/8 text-white/60 hidden sm:inline">Solo game, works offline</span>}
       {online && room.spectators.length > 0 && <span className="chip bg-white/10">👀 {room.spectators.length}</span>}
-      {voiceOn && listening && <span className="chip bg-emerald-500/30" title="Say “UNO!”">🎙️</span>}
+      {voiceOn && listening && <span className="chip bg-emerald-500/30" title="Say “Ek!”">🎙️</span>}
       <button onClick={() => setOpen((o) => !o)} aria-label="Menu" aria-expanded={open}
         className="ml-auto relative btn-ghost !px-3 !py-2 text-lg leading-none">
         ☰
@@ -93,7 +93,7 @@ function TopBar({ onChat, unread, voiceOn, setVoiceOn, listening, coachOn, setCo
               <MenuRow icon={muted ? '🔇' : '🔊'} label="Sound" on={!muted} onClick={() => setMuted(!muted)} />
               <MenuRow icon="🦉" label="Smart Coach" sub="Shows the 💡 hint button" on={coachOn} onClick={() => setCoachOn(!coachOn)} />
               <MenuRow icon="💡" label="Tips for new players" sub="Explains special cards the first time" on={tipsOn} onClick={() => setTipsOn(!tipsOn)} />
-              {voiceSupported && <MenuRow icon="🎤" label="Voice UNO" sub="Shout “UNO!” instead of tapping" on={voiceOn} onClick={() => setVoiceOn(!voiceOn)} />}
+              {voiceSupported && <MenuRow icon="🎤" label="Voice call" sub="Say “Ek!” instead of tapping" on={voiceOn} onClick={() => setVoiceOn(!voiceOn)} />}
               <div className="h-px bg-white/10 my-1" />
               {!confirmLeave
                 ? <MenuRow icon="🚪" label="Leave table" onClick={() => setConfirmLeave(true)} />
@@ -125,7 +125,7 @@ function Opponent({ seat, player, isTurn, vulnerable, onCatch, revealHand, timer
           <Avatar k={seat.avatar} size={48} className="sm:!w-14 sm:!h-14" />
         </div>
         {seat.autopilot && <span className="absolute -bottom-1 -right-1 chip bg-sky-500 !px-1.5 !py-0.5 text-[10px]" title="Autopilot is playing">🤖</span>}
-        {count === 1 && !vulnerable && <span className="absolute -top-2 -right-4 chip bg-uno-red text-white font-display !text-[11px] rotate-12 shadow">UNO</span>}
+        {count === 1 && !vulnerable && <span className="absolute -top-2 -right-4 chip bg-uno-red text-white font-display !text-[11px] rotate-12 shadow">EK</span>}
       </div>
       <div className={`text-xs sm:text-sm font-semibold max-w-[110px] truncate px-2.5 py-0.5 rounded-full ${isTurn ? 'bg-gold text-[#1b1405]' : 'bg-black/30 text-white/85'}`}>
         {seat.name.replace(' 🤖', '')}
@@ -430,7 +430,7 @@ export function Table() {
             <Hand hand={game.hand} playable={game.playable} myTurn={myTurn} hintCardId={hint?.cardId} onPlay={handlePlay} disabled={game.phase !== 'playing'} />
           </div>
 
-          {/* UNO panic button */}
+          {/* Ek! panic button */}
           <AnimatePresence>
             {showUno && game.phase === 'playing' && (
               <motion.button key="uno" onClick={doUno}
@@ -438,8 +438,8 @@ export function Table() {
                 transition={{ scale: { repeat: Infinity, duration: 0.8 }, rotate: { type: 'spring' } }}
                 className="absolute right-3 -top-24 sm:right-8 sm:-top-28 z-30 w-24 h-24 sm:w-28 sm:h-28 rounded-full font-display font-bold text-3xl text-white pulse-ring"
                 style={{ background: 'radial-gradient(circle at 35% 30%, #ff7b6b, #e53935 55%, #a31515)', boxShadow: '0 8px 0 #7a0f0f, 0 14px 30px rgba(0,0,0,.5)', WebkitTextStroke: '1.5px #5a0a0a' }}
-                aria-label="Call UNO">
-                UNO!
+                aria-label="Call Ek">
+                EK!
                 <span className="block text-[10px] font-sans font-bold tracking-wide opacity-90" style={{ WebkitTextStroke: 0 }}>
                   {voiceOn ? 'or shout it!' : vulnerableMe ? 'tap fast!' : 'press U'}
                 </span>

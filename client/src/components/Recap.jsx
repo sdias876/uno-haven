@@ -3,7 +3,7 @@ import { useGame } from '../lib/store.jsx';
 import { Card } from './Card.jsx';
 import { resultFor, fmt } from '../shell/wallet.js';
 
-const via = { wild4: 'a Wild Draw Four', draw2: 'a Draw Two', catch: 'an UNO catch' };
+const via = { wild4: 'a Wild Draw Four', draw2: 'a Draw Two', catch: 'an Ek catch' };
 
 function Stat({ icon, label, value, sub, delay }) {
   return (
@@ -54,9 +54,9 @@ export function Recap() {
           <Stat delay={0.1} icon="😈" label="Most ruthless move"
             value={h.mostRuthless ? `${h.mostRuthless.by.replace(' 🤖', '')} → ${h.mostRuthless.victim.replace(' 🤖', '')}` : 'Peaceful game'}
             sub={h.mostRuthless ? `+${h.mostRuthless.amount} via ${via[h.mostRuthless.via] ?? h.mostRuthless.via}` : 'No penalties dealt'} />
-          <Stat delay={0.18} icon="🔥" label="Longest UNO streak"
+          <Stat delay={0.18} icon="🔥" label="Longest Ek streak"
             value={h.longestUnoStreak ? h.longestUnoStreak.name.replace(' 🤖', '') : '—'}
-            sub={h.longestUnoStreak ? `${h.longestUnoStreak.turns} turn${h.longestUnoStreak.turns > 1 ? 's' : ''} on one card` : 'Nobody sat on UNO'} />
+            sub={h.longestUnoStreak ? `${h.longestUnoStreak.turns} turn${h.longestUnoStreak.turns > 1 ? 's' : ''} on one card` : 'Nobody sat on one card'} />
           <Stat delay={0.26} icon="⚡" label="Fastest hands"
             value={h.fastest ? h.fastest.name.replace(' 🤖', '') : '—'}
             sub={h.fastest ? `${(h.fastest.avgTurnMs / 1000).toFixed(1)}s per turn` : ''} />
@@ -106,8 +106,8 @@ export function Recap() {
                 <b>{e.name}</b>{' '}
                 {e.type === 'play' && <>played <b>{e.label}</b>{e.card?.color === 'wild' ? ` → ${e.color}` : ''}{e.jumpedIn ? ' (jump-in!)' : ''}</>}
                 {e.type === 'penalty' && <>drew {e.amount} as a penalty</>}
-                {e.type === 'caught' && <>got caught without calling UNO</>}
-                {e.type === 'uno' && <>called UNO!</>}
+                {e.type === 'caught' && <>got caught without calling Ek</>}
+                {e.type === 'uno' && <>called EK!</>}
                 {e.type === 'swap' && <>swapped hands</>}
                 {e.type === 'rotate' && <>rotated all hands</>}
                 {e.type === 'win' && <>won the round 🎉</>}

@@ -16,9 +16,9 @@ export const TIPS = {
   swap: '7 rule — playing a 7 swaps your whole hand with a player you choose.',
   rotate: '0 rule — every hand just moved to the next player.',
   jumpIn: 'Jump-In — an exact copy of the top card can be played even when it’s not your turn.',
-  catchable: 'Someone forgot to say UNO! Tap “Catch!” under their name to make them draw 2.',
-  unoTime: 'Two cards left — tap the red UNO! button before you play, or you can get caught.',
-  caughtMe: 'Caught! Next time, tap UNO! when you’re down to two cards.',
+  catchable: 'Someone forgot to call “Ek!” Tap “Catch!” under their name to make them draw 2.',
+  unoTime: 'Two cards left — tap the red EK! button before you play, or you can get caught.',
+  caughtMe: 'Caught! Next time, tap EK! when you’re down to two cards.',
   smartHint: 'Not sure what to play? Tap 💡 Hint and the Coach shows the best card.',
 };
 

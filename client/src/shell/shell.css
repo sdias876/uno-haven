@@ -1024,7 +1024,7 @@
 .sh.bigcards .pc{width:6.6rem!important;height:9.4rem!important}.sh.bigcards .pc .r{font-size:2.8rem!important}.sh.bigcards .pc .s{font-size:2.5rem!important}
 .sh.bigcards .cell{font-size:4.3cqw}.sh.bigcards .cell .s{font-size:4.4cqw}
 @media (max-width:520px){.sh.bigcards .pc{width:calc((100vw - 60px)/6)!important;height:auto!important}}
-/* ===== UNO Haven additions on top of the Spade Haven family look ===== */
+/* ===== Ek Haven additions on top of the Spade Haven family look ===== */
 .sh{min-height:100%;color:var(--ink);font-family:var(--body)}
 .sh .mini-uno{position:relative;width:100%;height:100%}
 .sh .mt-oval{position:absolute;left:14%;right:14%;top:18%;bottom:24%;border-radius:50%;
@@ -1050,7 +1050,7 @@
 .sh .fan{left:10px;width:340px;height:240px}
 .sh .fan>.fc{position:absolute;bottom:0;left:110px;transform-origin:50% 130%}
 .sh .fan>.fc:nth-child(1){transform:rotate(-26deg)}.sh .fan>.fc:nth-child(2){transform:rotate(-13deg)}.sh .fan>.fc:nth-child(4){transform:rotate(13deg)}.sh .fan>.fc:nth-child(5){transform:rotate(26deg)}
-/* UNO cards orbit the globe */
+/* game cards orbit the globe */
 .sh .orbit .oc.uc{width:40px;height:58px;margin:-29px 0 0 -20px;border-radius:6px;border:2px solid #fff;display:grid;place-items:center;box-shadow:0 0 0 2px #ffc83d,0 0 12px rgba(255,200,61,.6),0 5px 10px rgba(0,0,0,.55)}
 .sh .oc.uc.red{background:linear-gradient(160deg,#ff5a5d,#b3191c)}.sh .oc.uc.blue{background:linear-gradient(160deg,#5a9bff,#1652b8)}
 .sh .oc.uc.green{background:linear-gradient(160deg,#47d18d,#168553)}.sh .oc.uc.yellow{background:linear-gradient(160deg,#ffd96e,#d49a17)}

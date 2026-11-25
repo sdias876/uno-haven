@@ -17,7 +17,7 @@ const RULES = [
 ];
 const LEVELS = [
   { key: 'smart', label: 'Auto', icon: '✨', desc: 'Adapts to how well the table plays' },
-  { key: 'casual', label: 'Chill', icon: '😊', desc: 'Relaxed, forgets UNO sometimes' },
+  { key: 'casual', label: 'Chill', icon: '😊', desc: 'Relaxed, sometimes forgets to call Ek' },
   { key: 'tactical', label: 'Classic', icon: '🧠', desc: 'Tracks cards, saves wilds' },
   { key: 'ruthless', label: 'Ruthless', icon: '😈', desc: 'Disrupts colors, catches everything' },
 ];

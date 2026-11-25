@@ -6,7 +6,11 @@ import { VitePWA } from 'vite-plugin-pwa';
 
 const gameSrc = fileURLToPath(new URL('../server/src', import.meta.url));
 
+// PREVIEW=1 builds a stand-alone copy (relative paths, no service worker) for previews inside Claude.
+const preview = !!process.env.PREVIEW;
+
 export default defineConfig({
+  base: preview ? './' : '/',
   resolve: {
     // The browser imports the SAME rules engine, bots and room logic as the server (offline solo mode)
     alias: { '@game': gameSrc },
@@ -14,12 +18,12 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
-    VitePWA({
+    !preview && VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['icons/apple-touch-icon.png'],
       manifest: {
-        name: 'UNO Haven',
-        short_name: 'UNO Haven',
+        name: 'Ek Haven',
+        short_name: 'Ek Haven',
         description: 'Smart card game with adaptive bots and a coach. Play solo offline or with friends.',
         theme_color: '#0e1660',
         background_color: '#070b33',

@@ -353,12 +353,12 @@ export class UnoGame {
       return { ok: true, events: [{ type: 'unoReady', playerId }] };
     }
     if (p.hand.length === 1) return { ok: true, events: [] }; // already safe
-    return fail('You can only call UNO when you are down to your last card');
+    return fail('You can only call Ek when you are down to your last card');
   }
 
   catchUno(catcherId, targetId) {
     if (this.phase !== 'playing') return fail('Game is over');
-    if (catcherId === targetId) return fail('Call UNO instead!');
+    if (catcherId === targetId) return fail('Call Ek instead!');
     if (!this.player(catcherId)) return fail('Not in this game');
     if (this.unoVulnerable !== targetId) return fail('Too late — nobody to catch');
     const target = this.player(targetId);

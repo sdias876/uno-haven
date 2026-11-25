@@ -31,6 +31,6 @@ if (fs.existsSync(dist)) {
 
 attachHandlers(io, rooms);
 
-server.listen(PORT, () => console.log(`🃏 UNO Haven server listening on http://localhost:${PORT}`));
+server.listen(PORT, () => console.log(`🃏 Ek Haven server listening on http://localhost:${PORT}`));
 
 export { app, server, io, rooms };

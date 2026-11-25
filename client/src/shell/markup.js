@@ -1,11 +1,11 @@
-// UNO Haven's opening page, main menu and pop-ups, built like Spade Haven / Sequence Haven.
+// Ek Haven's opening page, main menu and pop-ups, built like Spade Haven / Sequence Haven.
 const STAR = 'M0 -6 L1.8 -1.8 6 -1.8 2.6 1 3.8 5.6 0 3 -3.8 5.6 -2.6 1 -6 -1.8 -1.8 -1.8Z';
 
-/** The UNO Haven emblem: gold rim, navy disc, two fanned cards and gold stars. */
+/** The Ek Haven emblem: gold rim, navy disc, two fanned cards and gold stars. */
 export function emblem(n, cls = 'emb') {
   const card = (x, rot, grad, inner) => `<g transform="rotate(${rot} 120 140)"><rect x="${x}" y="58" width="64" height="94" rx="9" fill="#fff"/><rect x="${x + 4}" y="62" width="56" height="86" rx="7" fill="url(#${grad}${n})"/>
     <ellipse cx="${x + 32}" cy="105" rx="21" ry="33" transform="rotate(28 ${x + 32} 105)" fill="#fff"/>${inner}</g>`;
-  return `<svg class="${cls}" viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="UNO Haven">
+  return `<svg class="${cls}" viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Ek Haven">
 <defs>
 <linearGradient id="eg${n}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff6cc"/><stop offset=".4" stop-color="#ffc83d"/><stop offset=".8" stop-color="#d48f0c"/><stop offset="1" stop-color="#a86d08"/></linearGradient>
 <linearGradient id="er${n}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff6cc"/><stop offset=".3" stop-color="#f5c240"/><stop offset=".65" stop-color="#b87a0a"/><stop offset="1" stop-color="#ffd970"/></linearGradient>
@@ -21,7 +21,7 @@ export function emblem(n, cls = 'emb') {
 <path d="M34 96 A90 90 0 0 1 206 96" fill="none" stroke="#fff" stroke-opacity=".14" stroke-width="6" stroke-linecap="round"/>
 <g filter="url(#es${n})">
 ${card(62, -16, 'cb', `<text x="94" y="118" text-anchor="middle" font-family="Arial Black,Impact,sans-serif" font-weight="900" font-size="38" fill="#2d7ff9" stroke="#151a36" stroke-width="2.5" paint-order="stroke">7</text>`)}
-${card(114, 14, 'cr', `<text x="146" y="114" text-anchor="middle" font-family="Arial Black,Impact,sans-serif" font-weight="900" font-size="22" fill="#e5383b" stroke="#151a36" stroke-width="2" paint-order="stroke" transform="rotate(-18 146 110)">UNO</text>`)}
+${card(114, 14, 'cr', `<text x="146" y="114" text-anchor="middle" font-family="Arial Black,Impact,sans-serif" font-weight="900" font-size="32" fill="#e5383b" stroke="#151a36" stroke-width="2.5" paint-order="stroke" transform="rotate(-18 146 110)">EK</text>`)}
 </g>
 <g filter="url(#es${n})">
 <circle cx="120" cy="176" r="26" fill="url(#en${n})" stroke="#ffc83d" stroke-width="4"/>
@@ -49,14 +49,14 @@ const miniTable = `<div class="mini-uno">
 export const SHELL_HTML = `
 <section class="screen landing" id="home">
   <nav class="land-nav">
-    <a href="#top" class="land-brand">${emblem(9)}<span>UNO HAVEN</span></a>
+    <a href="#top" class="land-brand">${emblem(9)}<span>EK HAVEN</span></a>
     <div class="land-links"><a href="#features">Features</a><button class="linklike" data-play>Game modes</button><button class="linklike" data-rules-open>Rules</button></div>
     <button class="pill green nav-cta" data-play>Play free</button>
   </nav>
   <header class="hero felt-bg" id="top">
     <div class="hero-copy">
-      <div class="hero-logo">${emblem(1)}<div class="logo-name"><span>UNO</span><span>HAVEN</span></div></div>
-      <p class="hero-tag">Match the color or the number, hit them with a +4, and shout UNO! before your last card. Smart bots, friends online and a coach at your side.</p>
+      <div class="hero-logo">${emblem(1)}<div class="logo-name"><span>EK</span><span>HAVEN</span></div></div>
+      <p class="hero-tag">Match the color or the number, hit them with a +4, and call EK! when you're down to one card. Smart bots, friends online and a coach at your side.</p>
       <div class="hero-ctas"><button class="pill green big" data-play>&#9654; Play in your browser</button></div>
       <p class="hero-fine">Free to play · No sign-up needed · Phones, tablets and computers</p>
     </div>
@@ -72,13 +72,13 @@ export const SHELL_HTML = `
       <article class="feature"><span class="f-icon">🔑</span><h3>Private tables</h3><p>Open a table, send the invite link or 5-letter code, and play friends on their own phones or computers.</p></article>
       <article class="feature"><span class="f-icon">👥</span><h3>Up to 6 players</h3><p>Fill empty seats with bots, and let friends watch as spectators when the table is full.</p></article>
       <article class="feature"><span class="f-icon">🃏</span><h3>House rules</h3><p>Stacking, the 7-0 swap, Jump-In and Force Play. Pick the rules your family plays with.</p></article>
-      <article class="feature"><span class="f-icon">💡</span><h3>Smart Coach</h3><p>A one-line tip shows the best card and why, and you can say "UNO!" out loud to call it.</p></article>
+      <article class="feature"><span class="f-icon">💡</span><h3>Smart Coach</h3><p>A one-line tip shows the best card and why, and you can say "Ek!" out loud to call it.</p></article>
       <article class="feature"><span class="f-icon">📶</span><h3>Never lose your seat</h3><p>Lost connection? Reopen the link and you are back in your seat. Solo games even work offline.</p></article>
     </div>
     <div class="center-row"><button class="pill green big" data-play>&#9654; Start playing now</button></div>
   </section>
   <footer class="land-foot">
-    <span>&#9733; UNO Haven</span>
+    <span>&#9733; Ek Haven</span>
     <span>From the makers of Spade Haven · SE Digital Transformation</span>
     <span class="land-legal"><a href="https://sedigitaltransformation.com/privacy.html">Privacy</a> · <a href="https://sedigitaltransformation.com/terms.html">Terms</a> · <a href="https://sedigitaltransformation.com/#contact">Contact</a></span>
   </footer>
@@ -205,7 +205,7 @@ export const SHELL_HTML = `
           <h3>Account</h3>
           <p class="acct-line" id="acctLine"></p>
           <button class="exit-btn" id="setExit">EXIT</button>
-          <small class="exit-note">Back to the UNO Haven home screen. Your coins and progress stay saved on this device.</small>
+          <small class="exit-note">Back to the Ek Haven home screen. Your coins and progress stay saved on this device.</small>
         </div>
         <div class="set-right">
           <button class="acct-btn" id="setInstall" hidden><span class="ab-ic">📲</span><span>Install the app</span></button>
@@ -215,9 +215,9 @@ export const SHELL_HTML = `
       </div>
       <div class="set-rule"></div>
       <div class="tg-grid">
-        <div class="tg-box"><b>Sound</b><button class="tg" data-k="sound" role="switch"><span class="tg-txt">ON</span><i></i></button></div><div class="tg-box"><b>Smart Coach</b><button class="tg" data-k="coach" role="switch"><span class="tg-txt">ON</span><i></i></button></div><div class="tg-box"><b>Tips</b><button class="tg" data-k="tips" role="switch"><span class="tg-txt">ON</span><i></i></button></div><div class="tg-box"><b>Voice UNO</b><button class="tg" data-k="voice" role="switch"><span class="tg-txt">ON</span><i></i></button></div>
+        <div class="tg-box"><b>Sound</b><button class="tg" data-k="sound" role="switch"><span class="tg-txt">ON</span><i></i></button></div><div class="tg-box"><b>Smart Coach</b><button class="tg" data-k="coach" role="switch"><span class="tg-txt">ON</span><i></i></button></div><div class="tg-box"><b>Tips</b><button class="tg" data-k="tips" role="switch"><span class="tg-txt">ON</span><i></i></button></div><div class="tg-box"><b>Voice call</b><button class="tg" data-k="voice" role="switch"><span class="tg-txt">ON</span><i></i></button></div>
       </div>
-      <p class="set-legal"><a href="https://sedigitaltransformation.com/privacy.html" target="_blank" rel="noopener">Privacy</a> · <a href="mailto:support@sedigitaltransformation.com?subject=UNO%20Haven">Contact</a> · UNO Haven by SE Digital Transformation</p>
+      <p class="set-legal"><a href="https://sedigitaltransformation.com/privacy.html" target="_blank" rel="noopener">Privacy</a> · <a href="mailto:support@sedigitaltransformation.com?subject=Ek%20Haven">Contact</a> · Ek Haven by SE Digital Transformation</p>
     </div>
   </div>
 </div>
@@ -228,7 +228,7 @@ export const SHELL_HTML = `
     <h4>Goal</h4><p>Be the first to play every card in your hand. The winner scores the cards left in everyone else's hands.</p>
     <h4>On your turn</h4><ul><li>Play a card that matches the top card's <b>color</b>, <b>number</b> or <b>symbol</b>.</li><li>Wild cards can be played on anything, and you pick the next color.</li><li>Can't play? Draw a card. If it fits, you may play it.</li></ul>
     <h4>Action cards</h4><ul><li><b>Skip</b>: the next player misses a turn.</li><li><b>Reverse</b>: play changes direction.</li><li><b>Draw Two</b>: the next player draws 2 and misses a turn.</li><li><b>Wild Draw Four</b>: pick a color; the next player draws 4 and misses a turn.</li></ul>
-    <h4>Shout UNO!</h4><p>When you play your second-to-last card, press the big <b>UNO</b> button (or say it out loud with Voice UNO). If someone catches you first, you draw 2.</p>
+    <h4>Call EK!</h4><p>When you play your second-to-last card, press the big <b>EK!</b> button (or say it out loud with Voice call). If someone catches you first, you draw 2.</p>
     <h4>Coins</h4><p>Bet coins when you start a game. The winner takes the pot: the bet times the number of players. Get more coins from the Mega Bonus wheel, the hourly free coins, daily gifts and level-ups.</p>
     <div class="modal-foot"><button class="pill green" data-close>Got it</button></div>
   </div>

@@ -1,5 +1,5 @@
 // Wires up the opening page, main menu, Mega Bonus wheel, gifts, stats, avatars and settings.
-// Ported from Sequence Haven (which follows Spade Haven) and adapted to UNO Haven.
+// Ported from Sequence Haven (which follows Spade Haven) and adapted to Ek Haven.
 import { P, saveP, fmt, levelOf, lvBase, FREE_COINS, FREE_EVERY, SPIN_EVERY, DAILY, onWallet } from './wallet.js';
 import { AVATARS, AV_NAMES, avatarUrl } from './avatars.js';
 import { sound } from '../lib/sound.js';

@@ -1,6 +1,6 @@
-# 🃏 UNO Haven
+# 🃏 Ek Haven (formerly UNO Haven)
 
-**From the makers of Spade Haven.** UNO Haven uses the Spade Haven family look: a maroon-felt opening page, Spade Haven's main menu (Play Now, Play Friends, Join a Game), coins and bets, the Mega Bonus wheel, daily gifts, levels, stats, Spade Haven's player pictures and bot portraits, and a Settings window with Exit.
+**From the makers of Spade Haven.** Ek Haven uses the Spade Haven family look: a maroon-felt opening page, Spade Haven's main menu (Play Now, Play Friends, Join a Game), coins and bets, the Mega Bonus wheel, daily gifts, levels, stats, Spade Haven's player pictures and bot portraits, and a Settings window with Exit.
 
 ### Coins (saved on each player's device)
 - Every player starts with **50,000 coins**.
@@ -14,7 +14,7 @@ The opening page, menu and pop-ups live in `client/src/shell/` (`markup.js`, `sh
 
 ---
 
-UNO Haven is a multiplayer UNO-style card game that runs in the browser. Each move is checked by the server, so players can't cheat. It also has smart bots, a coach that suggests moves, house rules, voice "UNO!" calls, spectators, and a recap screen after every match. It works on desktop and mobile browsers.
+Ek Haven is a multiplayer UNO-style card game that runs in the browser. Each move is checked by the server, so players can't cheat. It also has smart bots, a coach that suggests moves, house rules, voice "UNO!" calls, spectators, and a recap screen after every match. It works on desktop and mobile browsers.
 
 | Layer | Tech |
 |---|---|

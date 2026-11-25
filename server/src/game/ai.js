@@ -99,7 +99,7 @@ export function evaluateCard(game, playerId, card, level = 'ruthless') {
   add(sameColorLeft * 1.2, `Stay in ${card.color} — you still hold ${sameColorLeft} more to follow up with.`);
 
   if (handAfter.length === 0) add(1000, 'This is your last card — play it and win!');
-  if (handAfter.length === 1) add(3, "This drops you to one card — don't forget to hit UNO!");
+  if (handAfter.length === 1) add(3, "This drops you to one card — don't forget to call EK!");
 
   // Stacking: any stack beats eating the penalty
   if (game.pendingDraw > 0) add(40, `Stack it! Pass the +${game.pendingDraw + (card.value === 'wild4' ? 4 : 2)} on instead of drawing.`);
@@ -233,7 +233,7 @@ export function coachHint(game, playerId) {
     const jump = game.playableCardIds(playerId);
     if (jump.length) return { cardId: jump[0], tip: 'Jump-In! You hold an exact match of the top card — slam it down now.' };
     const next = game.nextPlayer();
-    return { cardId: null, tip: `Not your turn yet. Watch ${next.name.replace(' 🤖', '')} — if anyone forgets UNO, hit Catch!` };
+    return { cardId: null, tip: `Not your turn yet. Watch ${next.name.replace(' 🤖', '')} — if anyone forgets to call Ek, hit Catch!` };
   }
   const playable = game.playableCardIds(playerId).map((id) => me.hand.find((c) => c.id === id));
   if (!playable.length) {

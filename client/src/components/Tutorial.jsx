@@ -24,8 +24,8 @@ const STEPS = [
     success: () => 'Blocked! Skip, Reverse, +2 and Wilds are your weapons. ⊘',
   },
   {
-    title: 'Down to one? Hit UNO!',
-    body: 'Playing this card leaves you with one. Tap the red UNO button first (or say “UNO!” with voice on), then play.',
+    title: 'Down to one? Call EK!',
+    body: 'Playing this card leaves you with one. Tap the red EK! button first (or say “Ek!” with voice on), then play.',
     top: C('t3', 'green', '1'),
     hand: [C('f', 'green', '4'), C('g', 'green', '7')],
     playable: ['f', 'g'],
@@ -45,7 +45,7 @@ export function Tutorial({ onDone, onSkip }) {
   const tap = (card) => {
     if (played) return;
     if (!s.playable.includes(card.id)) { setNudge('That one doesn’t match — look for the glow.'); play('error'); return; }
-    if (s.needsUno && !uno) { setNudge('Hit UNO first — or you’ll get caught!'); play('caught'); return; }
+    if (s.needsUno && !uno) { setNudge('Call EK! first — or you’ll get caught!'); play('caught'); return; }
     play(card.value === 'skip' ? 'skip' : 'snap');
     setPlayed(card);
     setNudge(null);
@@ -101,10 +101,10 @@ export function Tutorial({ onDone, onSkip }) {
                   })}
                 </div>
                 {s.needsUno && !played && (
-                  <motion.button onClick={() => { setUno(true); play('uno'); say('UNO!'); setNudge(null); }}
+                  <motion.button onClick={() => { setUno(true); play('uno'); say('Ek!'); setNudge(null); }}
                     animate={uno ? { scale: 1 } : { scale: [1, 1.1, 1] }} transition={{ repeat: uno ? 0 : Infinity, duration: 0.8 }}
                     className={`absolute right-3 bottom-3 w-20 h-20 rounded-full font-display text-2xl font-bold text-white ${uno ? 'bg-emerald-600' : 'bg-uno-red pulse-ring'}`}>
-                    {uno ? '✓' : 'UNO!'}
+                    {uno ? '✓' : 'EK!'}
                   </motion.button>
                 )}
               </div>

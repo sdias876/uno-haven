@@ -3,8 +3,8 @@ import { useEffect, useRef, useState } from 'react';
 const SR = typeof window !== 'undefined' ? (window.SpeechRecognition || window.webkitSpeechRecognition) : null;
 export const voiceSupported = !!SR;
 
-// Words speech engines commonly hear when someone shouts "UNO!"
-const UNO_WORDS = /\b(uno|oono|ouno|you know|u no|juno|you no)\b/i;
+// Words speech engines commonly hear when someone says "Ek!" (older "uno" calls still count)
+const UNO_WORDS = /\b(ek|eck|ekk|ache|egg|ake|aik|ik|uno|oono|ouno|you know|u no|juno|you no)\b/i;
 
 /**
  * Listens continuously while `enabled` and calls `onUno` when the player says "UNO".

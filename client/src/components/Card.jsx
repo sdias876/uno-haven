@@ -78,7 +78,7 @@ export function Card({ card, size = 'md', faceDown = false, chosenColor, classNa
         <div className="frame" style={{ borderColor: 'rgba(217,178,106,.45)' }} />
         <div className="back-oval" />
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="font-display text-[2.3em] -rotate-[22deg]" style={{ ...numeralStyle('#f7c548'), transform: 'rotate(-22deg) skewX(-7deg)' }}>UNO</span>
+          <span className="font-display text-[2.3em] -rotate-[22deg]" style={{ ...numeralStyle('#f7c548'), transform: 'rotate(-22deg) skewX(-7deg)' }}>EK</span>
         </div>
       </motion.div>
     );

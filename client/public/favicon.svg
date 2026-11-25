@@ -1,4 +1,4 @@
-<svg viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="UNO Haven">
+<svg viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Ek Haven">
 <defs>
 <linearGradient id="eg0" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff6cc"/><stop offset=".4" stop-color="#ffc83d"/><stop offset=".8" stop-color="#d48f0c"/><stop offset="1" stop-color="#a86d08"/></linearGradient>
 <linearGradient id="er0" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff6cc"/><stop offset=".3" stop-color="#f5c240"/><stop offset=".65" stop-color="#b87a0a"/><stop offset="1" stop-color="#ffd970"/></linearGradient>
@@ -16,7 +16,7 @@
 <g transform="rotate(-16 120 140)"><rect x="62" y="58" width="64" height="94" rx="9" fill="#fff"/><rect x="66" y="62" width="56" height="86" rx="7" fill="url(#cb0)"/>
     <ellipse cx="94" cy="105" rx="21" ry="33" transform="rotate(28 94 105)" fill="#fff"/><text x="94" y="118" text-anchor="middle" font-family="Arial Black,Impact,sans-serif" font-weight="900" font-size="38" fill="#2d7ff9" stroke="#151a36" stroke-width="2.5" paint-order="stroke">7</text></g>
 <g transform="rotate(14 120 140)"><rect x="114" y="58" width="64" height="94" rx="9" fill="#fff"/><rect x="118" y="62" width="56" height="86" rx="7" fill="url(#cr0)"/>
-    <ellipse cx="146" cy="105" rx="21" ry="33" transform="rotate(28 146 105)" fill="#fff"/><text x="146" y="114" text-anchor="middle" font-family="Arial Black,Impact,sans-serif" font-weight="900" font-size="22" fill="#e5383b" stroke="#151a36" stroke-width="2" paint-order="stroke" transform="rotate(-18 146 110)">UNO</text></g>
+    <ellipse cx="146" cy="105" rx="21" ry="33" transform="rotate(28 146 105)" fill="#fff"/><text x="146" y="114" text-anchor="middle" font-family="Arial Black,Impact,sans-serif" font-weight="900" font-size="32" fill="#e5383b" stroke="#151a36" stroke-width="2.5" paint-order="stroke" transform="rotate(-18 146 110)">EK</text></g>
 </g>
 <g filter="url(#es0)">
 <circle cx="120" cy="176" r="26" fill="url(#en0)" stroke="#ffc83d" stroke-width="4"/>
