@@ -1,6 +1,6 @@
 // Wires up the opening page, main menu, Mega Bonus wheel, gifts, stats, avatars and settings.
 // Ported from Sequence Haven (which follows Spade Haven) and adapted to Ek Haven.
-import { P, saveP, fmt, levelOf, lvBase, FREE_COINS, FREE_EVERY, SPIN_EVERY, DAILY, onWallet } from './wallet.js';
+import { P, saveP, adoptP, fmt, levelOf, lvBase, FREE_COINS, FREE_EVERY, SPIN_EVERY, DAILY, onWallet } from './wallet.js';
 import { AVATARS, AV_NAMES, avatarUrl } from './avatars.js';
 import { sound } from '../lib/sound.js';
 import { prefs } from '../lib/socket.js';
@@ -11,6 +11,17 @@ const wShort = (v) => (v >= 10000 ? `${v / 1000}K` : String(v));
 const wRad = (d) => (d - 90) * Math.PI / 180;
 const wPt = (r, d) => `${(r * Math.cos(wRad(d))).toFixed(2)} ${(r * Math.sin(wRad(d))).toFixed(2)}`;
 const clockStr = (ms) => { const t = Math.ceil(ms / 1000); return [Math.floor(t / 3600), Math.floor(t / 60) % 60, t % 60].map((n) => String(n).padStart(2, '0')).join(':'); };
+const ACCOUNT = {
+  enabled: false, resetMail: false,
+  get() { try { const a = JSON.parse(localStorage.getItem('unohaven.acct')); return a && a.id && a.key ? a : null; } catch { return null; } },
+  set(a) { try { if (a) localStorage.setItem('unohaven.acct', JSON.stringify({ id: a.id, key: a.key, email: a.email, name: a.name })); else localStorage.removeItem('unohaven.acct'); } catch { /* ignore */ } },
+};
+async function authApi(route, body) {
+  const r = await fetch(`/api/auth/${route}`, body ? { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) } : {});
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.error || 'Something went wrong. Please try again.');
+  return j;
+}
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 function wheelArt(px, rotClass) {
@@ -357,7 +368,12 @@ export function mountShell(root, api) {
       const on = OPT[t.dataset.k][0]();
       t.classList.toggle('on', on); t.setAttribute('aria-checked', on); t.querySelector('.tg-txt').textContent = on ? 'ON' : 'OFF';
     });
-    $('acctLine').innerHTML = `Playing as <b>${esc($('nameIn').value.trim() || 'Player')}</b> on this device.`;
+    const a = ACCT.get(), nm = esc($('nameIn').value.trim() || 'Player');
+    $('acctTitle').textContent = a ? 'Signed in' : 'Account';
+    $('acctLine').innerHTML = a ? `Playing as <b>${esc(a.name)}</b> · ${esc(a.email)}. Your progress is saved to your account.`
+      : ACCT.enabled ? `Sign in or register and save your progress! Playing as <b>${nm}</b> on this device.` : `Playing as <b>${nm}</b> on this device.`;
+    $('setEmail').hidden = !!a || !ACCT.enabled; $('setSignOut').hidden = !a; $('setPass').hidden = !a;
+    $('exitNote').textContent = a ? 'Back to the Ek Haven home screen. You stay signed in.' : 'Back to the Ek Haven home screen. Your coins and progress stay saved on this device.';
     const ins = api.installState();
     $('setInstall').hidden = !ins.canInstall; $('installHint').hidden = !ins.iosHint;
   }
@@ -367,6 +383,96 @@ export function mountShell(root, api) {
   $('setInstall').onclick = () => api.install();
   $('setTips').onclick = () => { $('setOv').hidden = true; api.openTutorial(); };
   $('mLearn').onclick = () => api.openTutorial();
+
+  // ---- email accounts (saved on the server; Brevo sends the emails) ----
+  const ACCT = ACCOUNT;
+  const profileOut = () => ({ coins: P.coins, xp: P.xp, played: P.played, won: P.won, bestWin: P.bestWin, bestSpin: P.bestSpin, spins: P.spins,
+    lastSpin: P.lastSpin, lastFree: P.lastFree, lastDaily: P.lastDaily, streak: P.streak, avatar: myAvatar() });
+  function adopt(acct) {
+    const pr = acct.profile;
+    if (pr) {
+      if (pr.avatar && AVATARS.includes(pr.avatar)) { api.setProfile({ ...prof(), avatar: pr.avatar }); mAvatar(); }
+      adoptP(pr, acct.updatedAt); shownCoins = P.coins;
+    }
+    if (acct.name) { $('nameIn').value = acct.name; api.setProfile({ ...prof(), name: acct.name }); }
+    renderWallet(); updateBonus();
+  }
+  let pushT = null;
+  function acctPush() {
+    const a = ACCT.get(); if (!a) return;
+    clearTimeout(pushT);
+    pushT = setTimeout(async () => {
+      try {
+        const r = await authApi('save', { id: a.id, key: a.key, profile: profileOut(), updatedAt: P.updatedAt || Date.now(), name: $('nameIn').value.trim() || a.name });
+        if (r && r.newer) adopt(r.newer);
+      } catch (e) { if (/sign in again/i.test(e.message)) { ACCT.set(null); toast('Please sign in again to keep saving your progress.', true, 4000); } }
+    }, 1500);
+  }
+  unsubs.push(onWallet((_p, adopted) => { if (!adopted) acctPush(); }));
+  $('nameIn').addEventListener('change', acctPush);
+  let authMode = 'in', resetToken = '';
+  function authView(mode) {
+    authMode = mode;
+    const up = mode === 'up', fg = mode === 'forgot', rs = mode === 'reset', ch = mode === 'pass';
+    $('authTitle').textContent = up ? 'Register' : fg ? 'Forgot password' : rs ? 'Choose a new password' : ch ? 'Change password' : 'Sign in';
+    $('authTabs').hidden = fg || rs || ch;
+    [...$('authTabs').children].forEach((b) => b.classList.toggle('on', b.dataset.v === mode));
+    $('auName').hidden = $('auNameL').hidden = !up;
+    $('auEmail').hidden = $('auEmailL').hidden = rs || ch;
+    $('auPass').hidden = $('auPassL').hidden = fg || rs;
+    $('auPassL').textContent = ch ? 'Current password' : 'Password';
+    $('auPass').autocomplete = up ? 'new-password' : 'current-password';
+    $('auPass2').hidden = $('auPass2L').hidden = !(rs || ch);
+    $('authGo').textContent = up ? 'Create account' : fg ? 'Send reset link' : rs || ch ? 'Save password' : 'Sign in';
+    $('authForgot').hidden = !(mode === 'in' && ACCT.resetMail);
+    $('authNote').hidden = fg || rs || ch;
+    $('authMsg').textContent = ''; $('authMsg').className = 'auth-msg';
+    if (up && !$('auName').value) $('auName').value = $('nameIn').value.trim();
+  }
+  function openAuth(mode) {
+    authView(mode); $('setOv').hidden = true; $('authOv').hidden = false;
+    setTimeout(() => { const f = [$('auName'), $('auEmail'), $('auPass'), $('auPass2')].find((x) => !x.hidden); if (f) f.focus(); }, 60);
+  }
+  $('setEmail').onclick = () => openAuth('in');
+  $('setPass').onclick = () => openAuth('pass');
+  $('setSignOut').onclick = () => { ACCT.set(null); toast('Signed out. Your progress stays on this device.'); renderSettings(); };
+  [...$('authTabs').children].forEach((b) => { b.onclick = (e) => { e.preventDefault(); authView(b.dataset.v); }; });
+  $('authForgot').onclick = () => authView('forgot');
+  $('authForm').onsubmit = async (e) => {
+    e.preventDefault();
+    const msg = (t, ok) => { $('authMsg').textContent = t; $('authMsg').className = `auth-msg${ok ? ' ok' : ''}`; };
+    const email = $('auEmail').value.trim(), pass = $('auPass').value, pass2 = $('auPass2').value;
+    $('authGo').disabled = true;
+    try {
+      if (authMode === 'in') {
+        const a = await authApi('signin', { email, password: pass });
+        ACCT.set(a); adopt(a); $('authOv').hidden = true; toast(`Welcome back, ${a.name}!`); sfx.win();
+      } else if (authMode === 'up') {
+        const a = await authApi('signup', { email, password: pass, name: $('auName').value.trim(), profile: profileOut() });
+        ACCT.set(a); adopt(a); $('authOv').hidden = true; toast(`Account created. Welcome, ${a.name}!`); sfx.win();
+      } else if (authMode === 'forgot') {
+        await authApi('forgot', { email }); msg('If that email has an account, a reset link is on its way. Check your inbox (and junk folder).', true);
+      } else if (authMode === 'reset') {
+        const a = await authApi('reset', { token: resetToken, password: pass2 });
+        ACCT.set(a); adopt(a); $('authOv').hidden = true; resetToken = ''; toast('Password changed. You are signed in.');
+        try { history.replaceState(null, '', location.pathname); } catch { /* ignore */ }
+      } else if (authMode === 'pass') {
+        const a = ACCT.get(); await authApi('password', { id: a.id, key: a.key, current: pass, password: pass2 });
+        $('authOv').hidden = true; toast('Password changed.');
+      }
+    } catch (err) { msg(err.message); }
+    finally { $('authGo').disabled = false; }
+  };
+  (async () => {
+    try { const c = await authApi('config'); ACCT.enabled = !!c.accounts; ACCT.resetMail = !!c.resetMail; } catch { /* offline */ }
+    const a = ACCT.get();
+    if (a && ACCT.enabled) {
+      try { const sv = await authApi('load', { id: a.id, key: a.key }); if ((sv.updatedAt || 0) > (P.updatedAt || 0)) adopt(sv); else acctPush(); }
+      catch (e) { if (/sign in again/i.test(e.message)) ACCT.set(null); }
+    }
+    const tok = new URLSearchParams(location.search).get('reset');
+    if (tok && ACCT.enabled) { resetToken = tok; show('menu'); openAuth('reset'); }
+  })();
 
   // ---- rules + promo ----
   const rulesOpen = () => { $('rulesOv').hidden = false; };

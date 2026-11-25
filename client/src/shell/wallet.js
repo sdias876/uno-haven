@@ -24,6 +24,13 @@ export function saveP() {
   try { localStorage.setItem(KEY, JSON.stringify(P)); } catch { /* private mode */ }
   subs.forEach((f) => f(P));
 }
+/** Take progress saved to the player's account onto this device (keeps its timestamp). */
+export function adoptP(pr, at) {
+  const keep = P.games;
+  Object.assign(P, pr); delete P.avatar; P.games = keep; P.updatedAt = at || Date.now();
+  try { localStorage.setItem(KEY, JSON.stringify(P)); } catch { /* ignore */ }
+  subs.forEach((f) => f(P, true));
+}
 export const lvBase = (L) => 60 * L * (L - 1);
 export const levelOf = (xp) => { let L = 1; while (xp >= lvBase(L + 1)) L++; return L; };
 export function addXp(n, toast) {

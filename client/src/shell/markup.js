@@ -80,7 +80,7 @@ export const SHELL_HTML = `
   <footer class="land-foot">
     <span>&#9733; Ek Haven</span>
     <span>From the makers of Spade Haven · SE Digital Transformation</span>
-    <span class="land-legal"><a href="https://sedigitaltransformation.com/privacy.html">Privacy</a> · <a href="https://sedigitaltransformation.com/terms.html">Terms</a> · <a href="https://sedigitaltransformation.com/#contact">Contact</a></span>
+    <span class="land-legal"><a href="/privacy">Privacy</a> · <a href="https://sedigitaltransformation.com/terms.html">Terms</a> · <a href="https://sedigitaltransformation.com/#contact">Contact</a></span>
   </footer>
 </section>
 
@@ -202,13 +202,16 @@ export const SHELL_HTML = `
     <div class="set-scroll">
       <div class="set-acct">
         <div class="set-left">
-          <h3>Account</h3>
+          <h3 id="acctTitle">Account</h3>
           <p class="acct-line" id="acctLine"></p>
           <button class="exit-btn" id="setExit">EXIT</button>
-          <small class="exit-note">Back to the Ek Haven home screen. Your coins and progress stay saved on this device.</small>
+          <small class="exit-note" id="exitNote">Back to the Ek Haven home screen. Your coins and progress stay saved on this device.</small>
         </div>
         <div class="set-right">
-          <button class="acct-btn" id="setInstall" hidden><span class="ab-ic">📲</span><span>Install the app</span></button>
+          <button class="acct-btn" id="setEmail" hidden><span class="ab-ic">✉</span><span>Email: sign in or register</span></button>
+          <button class="acct-btn alt" id="setPass" hidden><span class="ab-ic">🔑</span><span>Change password</span></button>
+          <button class="acct-btn out" id="setSignOut" hidden><span class="ab-ic">⎋</span><span>Sign out</span></button>
+          <button class="acct-btn alt" id="setInstall" hidden><span class="ab-ic">📲</span><span>Install the app</span></button>
           <button class="acct-btn alt" id="setTips"><span class="ab-ic">🎓</span><span>Replay the tutorial</span></button>
           <p class="acct-off" id="installHint" hidden>To install on iPhone or iPad: tap Share, then "Add to Home Screen".</p>
         </div>
@@ -217,7 +220,7 @@ export const SHELL_HTML = `
       <div class="tg-grid">
         <div class="tg-box"><b>Sound</b><button class="tg" data-k="sound" role="switch"><span class="tg-txt">ON</span><i></i></button></div><div class="tg-box"><b>Smart Coach</b><button class="tg" data-k="coach" role="switch"><span class="tg-txt">ON</span><i></i></button></div><div class="tg-box"><b>Tips</b><button class="tg" data-k="tips" role="switch"><span class="tg-txt">ON</span><i></i></button></div><div class="tg-box"><b>Voice call</b><button class="tg" data-k="voice" role="switch"><span class="tg-txt">ON</span><i></i></button></div>
       </div>
-      <p class="set-legal"><a href="https://sedigitaltransformation.com/privacy.html" target="_blank" rel="noopener">Privacy</a> · <a href="mailto:support@sedigitaltransformation.com?subject=Ek%20Haven">Contact</a> · Ek Haven by SE Digital Transformation</p>
+      <p class="set-legal"><a href="/privacy" target="_blank" rel="noopener">Privacy</a> · <a href="mailto:support@sedigitaltransformation.com?subject=Ek%20Haven">Contact</a> · Ek Haven by SE Digital Transformation</p>
     </div>
   </div>
 </div>
@@ -231,6 +234,24 @@ export const SHELL_HTML = `
     <h4>Call EK!</h4><p>When you play your second-to-last card, press the big <b>EK!</b> button (or say it out loud with Voice call). If someone catches you first, you draw 2.</p>
     <h4>Coins</h4><p>Bet coins when you start a game. The winner takes the pot: the bet times the number of players. Get more coins from the Mega Bonus wheel, the hourly free coins, daily gifts and level-ups.</p>
     <div class="modal-foot"><button class="pill green" data-close>Got it</button></div>
+  </div>
+</div>
+<div class="overlay" id="authOv" hidden>
+  <div class="modal pick auth">
+    <button class="x-close" data-close aria-label="Close">×</button>
+    <h2 id="authTitle">Sign in</h2>
+    <div class="seg" id="authTabs"><button data-v="in" class="on">Sign in</button><button data-v="up">Register</button></div>
+    <form id="authForm" autocomplete="on">
+      <label class="lbl" for="auName" id="auNameL" hidden>Your name</label><input class="field" id="auName" maxlength="16" autocomplete="nickname" hidden>
+      <label class="lbl" for="auEmail" id="auEmailL">Email</label><input class="field" id="auEmail" type="email" maxlength="200" autocomplete="email">
+      <label class="lbl" for="auPass" id="auPassL">Password</label><input class="field" id="auPass" type="password" maxlength="200" autocomplete="current-password">
+      <label class="lbl" for="auPass2" id="auPass2L" hidden>New password</label><input class="field" id="auPass2" type="password" maxlength="200" autocomplete="new-password" hidden>
+      <p class="auth-msg" id="authMsg"></p>
+      <button class="pill green" type="submit" id="authGo">Sign in</button>
+    </form>
+    <button class="linklike" id="authForgot">Forgot your password?</button>
+    <p class="muted small" id="authNote">Your coins, level and stats are saved to your account so you can play on any device.</p>
+    <p class="muted small auth-priv">Your email is only used for your account. <a href="/privacy" target="_blank" rel="noopener">Privacy</a></p>
   </div>
 </div>
 <div class="coin-fly" id="coinFly" aria-hidden="true"></div>
