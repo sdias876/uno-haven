@@ -14,7 +14,7 @@ import { Recap } from './Recap.jsx';
 import { Logo } from './Logo.jsx';
 import { useTips } from '../lib/tips.js';
 import { TableShape } from './TableShape.jsx';
-import { cityFor } from '../lib/city.js';
+import { cityOf } from '../lib/city.js';
 import { fmt } from '../shell/wallet.js';
 
 const hash = (s) => [...s].reduce((h, c) => (h * 31 + c.charCodeAt(0)) | 0, 7);
@@ -387,8 +387,29 @@ export function Table() {
   else status = `${turnSeat?.name?.replace(' 🤖', '') ?? '…'} is ${turnSeat?.isBot || turnSeat?.autopilot ? 'thinking' : 'playing'}…`;
   if (!myTurn && game.playable.length && game.rules.jumpIn) status = '⚡ Jump-In available — tap your glowing card!';
 
-  const city = cityFor(room.code);
+  const city = cityOf(room);
   const bet = Number(room.settings?.bet) || 0;
+  const actionRow = (
+    <>
+            {coachOn && myTurn && (
+              <button onClick={askHint} className="btn-ghost !py-2 text-sm" title="Smart Hint (H)">💡 Hint</button>
+            )}
+            {game.canPass && <button onClick={actions.pass} className="btn-ghost !py-2 text-sm">Pass ⏭</button>}
+            {mode === 'online' && (
+              <div className="relative">
+                <button onClick={() => setEmotesOpen((o) => !o)} className={`btn-ghost !py-2 !px-3 text-lg ${emotesOpen ? '!bg-white/25' : ''}`} aria-label="Reactions">😊</button>
+                <AnimatePresence>
+                  {emotesOpen && (
+                    <motion.div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-40" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }}
+                      onClick={() => setEmotesOpen(false)}>
+                      <EmoteBar compact />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            )}
+    </>
+  );
   const centerBlock = (
     <>
         <CenterPiles game={game} canDraw={canDraw} onDraw={actions.draw} lastPlayFrom={lastPlayFrom} />
@@ -432,6 +453,13 @@ export function Table() {
             </div>
           ))}
           <div className="tbl-center">{centerBlock}</div>
+          {!spectator && (
+            <div className="tbl-seat pos-me">
+              <div className={`seat-ring rounded-full grid place-items-center ${myTurn ? 'my-turn' : ''}`}><Avatar k={seatsById[myId]?.avatar} size={84} /></div>
+              <div className={`seat-name-me ${myTurn ? 'turn' : ''}`}>{(seatsById[myId]?.name || 'You').replace(' 🤖', '')} · {myCount}</div>
+            </div>
+          )}
+          {!spectator && <div className="tbl-actions">{actionRow}</div>}
         </div>
       ) : (
         <>
@@ -459,7 +487,7 @@ export function Table() {
           <div className={wide ? 'tbl-coach' : 'px-3 mb-2 md:mb-0 md:fixed md:left-4 md:top-1/2 md:-translate-y-1/2 md:w-72 md:px-0 z-30'}>
             {hint?.tip ? <Coach tip={hint.tip} onClose={() => setHint(null)} /> : <TipBubble tip={tip} onClose={dismissTip} />}
           </div>
-          <div className="flex items-center justify-center gap-2 px-3 min-h-[40px]">
+          {!wide && <div className="flex items-center justify-center gap-2 px-3 min-h-[40px]">
             <span className={`md:hidden chip ${myTurn ? 'bg-gold text-felt-900' : 'bg-black/40'}`}><Avatar k={seatsById[myId]?.avatar} size={20} className="inline-block align-middle" /> {myCount}</span>
             {coachOn && myTurn && (
               <button onClick={askHint} className="btn-ghost !py-2 text-sm" title="Smart Hint (H)">💡 Hint</button>
@@ -478,13 +506,10 @@ export function Table() {
                 </AnimatePresence>
               </div>
             )}
-          </div>
+          </div>}
           <div className="relative">
             {wide ? (
-              <div className="me-seat">
-                <div className={`seat-ring rounded-full grid place-items-center ${myTurn ? 'ring-4 ring-gold animate-pulse' : ''}`}><Avatar k={seatsById[myId]?.avatar} size={84} /></div>
-                <div className={`seat-name-me ${myTurn ? 'turn' : ''}`}>{(seatsById[myId]?.name || 'You').replace(' 🤖', '')} · {myCount}</div>
-              </div>
+              null
             ) : (
             <div className="absolute left-3 top-5 z-10 hidden md:flex items-center gap-2">
               <div className={`relative w-11 h-11 rounded-full grid place-items-center text-2xl ${myTurn ? 'bg-gold/30 ring-4 ring-gold' : 'bg-white/10'}`}>

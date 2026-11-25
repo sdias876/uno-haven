@@ -3,10 +3,11 @@ import { Avatar } from './Avatar.jsx';
 import { useState } from 'react';
 import { useGame } from '../lib/store.jsx';
 import { ChatPanel } from './Social.jsx';
+import { TableShape } from './TableShape.jsx';
 import { P, fmt } from '../shell/wallet.js';
+import { cityOf } from '../lib/city.js';
 
 const BET_CHOICES = [0, 100, 500, 1000, 2500, 5000, 10000];
-import { cityFor } from '../lib/city.js';
 
 const RULES = [
   { key: 'stacking', icon: '🥞', title: 'Stacking', desc: '+2 on +2, +4 on +4 — the unlucky one draws the total.' },
@@ -20,157 +21,159 @@ const LEVELS = [
   { key: 'tactical', label: 'Classic', icon: '🧠', desc: 'Tracks cards, saves wilds' },
   { key: 'ruthless', label: 'Ruthless', icon: '😈', desc: 'Disrupts colors, catches everything' },
 ];
+const levelName = (k) => LEVELS.find((l) => l.key === k)?.label ?? k;
+// Seats around the table, clockwise from your left (you sit at the bottom).
+const SPOTS = ['left', 'tl', 'top', 'tr', 'right'];
 
 function Toggle({ on, onChange, disabled }) {
   return (
     <button type="button" disabled={disabled} onClick={() => onChange(!on)} aria-pressed={on}
-      className={`relative w-12 h-7 rounded-full transition shrink-0 ${on ? 'bg-emerald-500' : 'bg-white/20'} ${disabled ? 'opacity-60' : ''}`}>
-      <motion.span layout className="absolute top-1 w-5 h-5 rounded-full bg-white shadow" style={{ left: on ? 24 : 4 }} />
+      className={`relative w-11 h-6 rounded-full transition shrink-0 ${on ? 'bg-emerald-500' : 'bg-white/20'} ${disabled ? 'opacity-60' : ''}`}>
+      <motion.span layout className="absolute top-1 w-4 h-4 rounded-full bg-white shadow" style={{ left: on ? 24 : 4 }} />
     </button>
   );
 }
 
+/** Private table before the deal: everything on one screen — the table with its seats, the house rules, and the Deal button. */
 export function Lobby() {
   const { room, me, actions, toast } = useGame();
   const [chatOpen, setChatOpen] = useState(false);
+  const [adding, setAdding] = useState(null); // seat spot showing the bot menu
   const isHost = me?.isHost;
   const spectator = me?.role === 'spectator';
   const inviteUrl = `${window.location.origin}/?room=${room.code}`;
   const full = room.seats.length >= room.maxSeats;
+  const city = cityOf(room);
+  const bet = room.settings.bet ?? 0;
 
   const copy = async () => {
     try { await navigator.clipboard.writeText(inviteUrl); toast('Invite link copied — send it to friends!', 'good'); }
     catch { toast(inviteUrl); }
   };
 
+  const mine = room.seats.findIndex((s) => s.id === me?.id);
+  const start = mine >= 0 ? mine : 0;
+  const ordered = [...room.seats.slice(start), ...room.seats.slice(0, start)];
+  const bottom = mine >= 0 ? ordered[0] : null;
+  const others = mine >= 0 ? ordered.slice(1) : ordered;
+  const spots = SPOTS.map((pos, i) => ({ pos, seat: others[i] ?? null }));
+  const freeSeats = room.maxSeats - room.seats.length;
+  let shownEmpty = 0;
+
+  const seatView = (s, pos) => (
+    <div key={s.id} className={`lb-seat at-${pos}`}>
+      <span className={`lt-ring ${s.id === me?.id ? 'me' : ''}`}><Avatar k={s.avatar} size={72} /></span>
+      {s.id === room.hostId && <span className="lb-crown" title="Host">👑</span>}
+      {isHost && s.id !== me?.id && (
+        <button onClick={() => actions.removeSeat(s.id)} className="lb-x" aria-label={`Remove ${s.name}`}>✕</button>
+      )}
+      <span className="lb-name">{s.name}{s.id === me?.id ? ' (you)' : ''}</span>
+      {s.isBot && (isHost ? (
+        <select value={s.botLevel} onChange={(e) => actions.botLevel(s.id, e.target.value)} className="lb-level" aria-label={`${s.name}'s level`}>
+          {LEVELS.map((l) => <option key={l.key} value={l.key} className="text-black">{l.label}</option>)}
+        </select>
+      ) : <span className="lb-level">{levelName(s.botLevel)}</span>)}
+      {!s.isBot && !s.connected && <span className="lb-level">Reconnecting…</span>}
+    </div>
+  );
+
   return (
-    <div className="felt min-h-full overflow-y-auto">
-      <div className="max-w-4xl mx-auto p-4 sm:p-6">
-        <div className="relative h-32 sm:h-40 -mx-4 sm:mx-0 -mt-4 sm:mt-0 mb-4 sm:rounded-3xl overflow-hidden bg-cover bg-center" style={{ backgroundImage: `url(/ui/city/${cityFor(room.code)[0]}.webp)` }}>
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#0b114e]" />
-          <div className="absolute left-5 bottom-2 font-bebas text-4xl sm:text-5xl tracking-[3px] text-white drop-shadow-[0_3px_0_#0a0f4a]">{cityFor(room.code)[1].toUpperCase()} TABLE</div>
-        </div>
-        <div className="flex items-center gap-3 mb-5">
-          <h1 className="font-display text-3xl">Table <span className="tracking-[0.12em] text-gold">{room.code}</span></h1>
-          <div className="ml-auto flex gap-2">
-            <button onClick={() => setChatOpen((o) => !o)} className="btn-ghost !py-2">💬 Chat</button>
-            <button onClick={actions.leave} className="btn-ghost !py-2">Leave</button>
-          </div>
-        </div>
+    <div className="felt tbl lb h-full flex flex-col overflow-hidden">
+      <div className="tbl-scene" style={{ backgroundImage: `url(/ui/city/${city[0]}.webp)` }} aria-hidden />
 
-        <motion.div initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="glass rounded-3xl p-4 mb-4 flex flex-col sm:flex-row sm:items-center gap-3">
-          <div className="flex-1 min-w-0">
-            <div className="text-sm text-white/60">Invite link</div>
-            <div className="text-sm truncate select-all text-white/90">{inviteUrl}</div>
-            <div className="text-xs text-white/50 mt-0.5">Friends who join a full or running table watch as spectators.</div>
-          </div>
-          <button onClick={copy} className="btn-gold">🔗 Copy invite link</button>
-        </motion.div>
+      <header className="lb-head">
+        <button className="ol-back lb-back" onClick={actions.leave} aria-label="Leave table">
+          <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></svg>
+        </button>
+        <div className="lb-title">
+          <span>{city[1].toUpperCase()} TABLE</span>
+          <b>{room.code}</b>
+        </div>
+        <button onClick={copy} className="lb-invite" title={inviteUrl}><img src="/ui/invite.webp" alt="" /><span className="lb-inv-long">COPY INVITE LINK</span><span className="lb-inv-short">INVITE</span></button>
+        <button className="round-ui" onClick={() => setChatOpen((o) => !o)} aria-label="Chat"><img src="/ui/chat-bubbles.webp" alt="" className="w-9 h-9 object-contain" /></button>
+      </header>
 
-        <div className="grid md:grid-cols-2 gap-4">
-          {/* Seats */}
-          <section className="glass rounded-3xl p-4">
-            <div className="flex items-center mb-3">
-              <h2 className="font-display text-xl">Players</h2>
-              <span className="ml-auto chip bg-white/10">{room.seats.length}/{room.maxSeats}</span>
+      <div className="lb-main">
+        <section className="lb-stage" onClick={(e) => { if (e.target === e.currentTarget) setAdding(null); }}>
+          <div className="lb-table">
+            <TableShape />
+            <div className="lb-felt">
+              <div className="lt-city"><span>{city[1]}</span></div>
+              <div className="lb-pills">
+                <span className="lt-pill">{bet ? <>{fmt(bet)} <img src="/ui/coins.webp" alt="" className="w-8 h-8 object-contain" /></> : 'NO BET'}</span>
+                <span className="lt-pill">{room.seats.length}/{room.maxSeats} PLAYERS</span>
+              </div>
+              {isHost ? (
+                <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={actions.start} disabled={room.seats.length < 2} className="lb-deal">
+                  {room.seats.length < 2 ? 'TAP + TO ADD A PLAYER' : `DEAL ${room.seats.length} PLAYERS`}
+                </motion.button>
+              ) : spectator && !full ? (
+                <button onClick={actions.takeSeat} className="lb-deal">TAKE A SEAT</button>
+              ) : (
+                <div className="lb-wait">Waiting for the host to deal<span className="dots3"><i>.</i><i>.</i><i>.</i></span></div>
+              )}
+              {room.seats.length >= 2 && bet > 0 && <div className="lb-sub">Winner takes {fmt(bet * room.seats.length)} coins · you have {fmt(P.coins)}</div>}
             </div>
-            <ul className="space-y-2">
-              <AnimatePresence initial={false}>
-                {room.seats.map((s) => (
-                  <motion.li key={s.id} layout initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 20, opacity: 0 }}
-                    className={`flex items-center gap-3 rounded-2xl px-3 py-2 ${s.id === me?.id ? 'bg-gold/15 ring-1 ring-gold/40' : 'bg-white/5'}`}>
-                    <Avatar k={s.avatar} size={40} className="ring-2 ring-white/70" />
-                    <div className="min-w-0 flex-1">
-                      <div className="font-bold truncate">{s.name}{s.id === me?.id ? ' (you)' : ''}</div>
-                      <div className="text-xs text-white/50">
-                        {s.id === room.hostId ? '👑 Host' : s.isBot ? `${{ smart: 'Auto', casual: 'Chill', tactical: 'Classic', ruthless: 'Ruthless' }[s.botLevel] ?? s.botLevel} bot` : s.connected ? 'Ready' : 'Reconnecting…'}
-                      </div>
-                    </div>
-                    {isHost && s.isBot && (
-                      <select value={s.botLevel} onChange={(e) => actions.botLevel(s.id, e.target.value)}
-                        className="bg-white/10 rounded-lg text-sm px-2 py-1 outline-none">
-                        {LEVELS.map((l) => <option key={l.key} value={l.key} className="text-black">{l.label}</option>)}
-                      </select>
+
+            {spots.map(({ pos, seat }) => {
+              if (seat) return seatView(seat, pos);
+              if (shownEmpty >= freeSeats) return null;
+              shownEmpty++;
+              return (
+                <div key={pos} className={`lb-seat at-${pos} ${adding === pos ? 'open' : ''}`}>
+                  {isHost ? (
+                    <button className="lb-add" onClick={() => setAdding(adding === pos ? null : pos)} aria-label="Add a computer player"><span>+</span></button>
+                  ) : <span className="lt-q lb-q" aria-label="Empty seat" />}
+                  <span className="lb-name dim">{isHost ? 'Add bot' : 'Empty'}</span>
+                  <AnimatePresence>
+                    {adding === pos && (
+                      <motion.div className={`lb-menu ${pos === 'right' || pos === 'tr' ? 'flip' : ''}`} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}>
+                        {LEVELS.map((l) => (
+                          <button key={l.key} title={l.desc} onClick={() => { actions.addBot(l.key); setAdding(null); }}>
+                            <span>{l.icon}</span>{l.label}
+                          </button>
+                        ))}
+                      </motion.div>
                     )}
-                    {isHost && s.id !== me?.id && (
-                      <button onClick={() => actions.removeSeat(s.id)} className="text-white/50 hover:text-rose-400 px-1" aria-label={`Remove ${s.name}`}>✕</button>
-                    )}
-                  </motion.li>
-                ))}
-              </AnimatePresence>
-            </ul>
-            {isHost && !full && (
-              <div className="mt-3">
-                <div className="text-sm text-white/60 mb-1.5">Add a bot</div>
-                <div className="grid grid-cols-4 gap-2">
-                  {LEVELS.map((l) => (
-                    <button key={l.key} onClick={() => actions.addBot(l.key)} className="btn-ghost !flex-col !gap-0 !py-2" title={l.desc}>
-                      <span className="text-xl">{l.icon}</span><span className="text-sm">{l.label}</span>
-                    </button>
-                  ))}
+                  </AnimatePresence>
                 </div>
-              </div>
-            )}
-            {room.spectators.length > 0 && (
-              <div className="mt-3 text-sm text-white/60">👀 Watching: {room.spectators.map((s) => s.name).join(', ')}</div>
-            )}
-            {spectator && !full && <button onClick={actions.takeSeat} className="btn-gold w-full mt-3">Take a seat</button>}
-          </section>
+              );
+            })}
+            {bottom && seatView(bottom, 'bottom')}
+          </div>
+          {room.spectators.length > 0 && <div className="lb-watch">👀 Watching: {room.spectators.map((s) => s.name).join(', ')}</div>}
+        </section>
 
-          {/* House rules */}
-          <section className="glass rounded-3xl p-4">
-            <div className="flex items-center mb-3">
-              <h2 className="font-display text-xl">House rules</h2>
-              {!isHost && <span className="ml-auto text-xs text-white/50">Host decides</span>}
-            </div>
-            <ul className="space-y-2.5">
-              {RULES.map((r) => (
-                <li key={r.key} className="flex items-start gap-3">
-                  <span className="text-2xl">{r.icon}</span>
-                  <div className="flex-1">
-                    <div className="font-bold">{r.title}</div>
-                    <div className="text-xs text-white/60 leading-snug">{r.desc}</div>
-                  </div>
-                  <Toggle on={room.rules[r.key]} disabled={!isHost} onChange={(v) => actions.setRules({ [r.key]: v })} />
-                </li>
-              ))}
-            </ul>
-            <div className="border-t border-white/10 mt-4 pt-3 space-y-3">
-              <div className="flex items-center gap-3">
-                <img src="/ui/coins.webp" alt="" className="w-8 h-8" />
-                <div className="flex-1"><div className="font-bold">Table bet</div><div className="text-xs text-white/60">{room.settings.bet ? `Winner takes ${fmt(room.settings.bet * room.seats.length)} coins · you have ${fmt(P.coins)}` : 'Friendly game, no coins'}</div></div>
-                <select disabled={!isHost} value={room.settings.bet ?? 0} onChange={(e) => actions.setRules({}, { bet: Number(e.target.value) })}
-                  className="bg-white/10 rounded-lg text-sm px-2 py-1 outline-none">
-                  {BET_CHOICES.map((b) => <option key={b} value={b} className="text-black">{b ? fmt(b) : 'No bet'}</option>)}
-                </select>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="text-2xl">⏱️</span>
-                <div className="flex-1"><div className="font-bold">Turn timer</div><div className="text-xs text-white/60">Autopilot plays when time runs out</div></div>
-                <select disabled={!isHost} value={room.settings.turnSeconds} onChange={(e) => actions.setRules({}, { turnSeconds: Number(e.target.value) })}
-                  className="bg-white/10 rounded-lg text-sm px-2 py-1 outline-none">
-                  {[15, 30, 60, 0].map((s) => <option key={s} value={s} className="text-black">{s ? `${s}s` : 'Off'}</option>)}
-                </select>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="text-2xl">👀</span>
-                <div className="flex-1"><div className="font-bold">Spectators see hands</div><div className="text-xs text-white/60">Great for streaming & teaching</div></div>
-                <Toggle on={room.settings.spectatorsSeeHands} disabled={!isHost} onChange={(v) => actions.setRules({}, { spectatorsSeeHands: v })} />
-              </div>
-            </div>
-          </section>
-        </div>
-
-        <div className="mt-6 flex justify-center">
-          {isHost ? (
-            <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={actions.start} disabled={room.seats.length < 2}
-              className="btn-gold text-xl !px-10 !py-4">
-              {room.seats.length < 2 ? 'Add a bot or invite a friend' : `Deal ${room.seats.length} players 🃏`}
-            </motion.button>
-          ) : (
-            <div className="glass rounded-2xl px-5 py-3 text-white/80">Waiting for the host to deal…</div>
-          )}
-        </div>
+        <aside className="lb-rules">
+          <div className="lb-rules-head">HOUSE RULES{!isHost && <small>Host decides</small>}</div>
+          <ul>
+            {RULES.map((r) => (
+              <li key={r.key} title={r.desc}>
+                <span className="lb-ic">{r.icon}</span>
+                <div className="min-w-0 flex-1"><b>{r.title}</b><small>{r.desc}</small></div>
+                <Toggle on={room.rules[r.key]} disabled={!isHost} onChange={(v) => actions.setRules({ [r.key]: v })} />
+              </li>
+            ))}
+          </ul>
+          <div className="lb-sets">
+            <label>
+              <img src="/ui/coins.webp" alt="" className="w-7 h-7 object-contain" /><b>Table bet</b>
+              <select disabled={!isHost} value={bet} onChange={(e) => actions.setRules({}, { bet: Number(e.target.value) })}>
+                {BET_CHOICES.map((b) => <option key={b} value={b} className="text-black">{b ? fmt(b) : 'No bet'}</option>)}
+              </select>
+            </label>
+            <label title="Autopilot plays when time runs out">
+              <span className="lb-ic">⏱️</span><b>Turn timer</b>
+              <select disabled={!isHost} value={room.settings.turnSeconds} onChange={(e) => actions.setRules({}, { turnSeconds: Number(e.target.value) })}>
+                {[15, 30, 60, 0].map((s) => <option key={s} value={s} className="text-black">{s ? `${s}s` : 'Off'}</option>)}
+              </select>
+            </label>
+            <label title="Great for streaming & teaching">
+              <span className="lb-ic">👀</span><b>Spectators see hands</b>
+              <Toggle on={room.settings.spectatorsSeeHands} disabled={!isHost} onChange={(v) => actions.setRules({}, { spectatorsSeeHands: v })} />
+            </label>
+          </div>
+        </aside>
       </div>
       <ChatPanel open={chatOpen} onClose={() => setChatOpen(false)} />
     </div>

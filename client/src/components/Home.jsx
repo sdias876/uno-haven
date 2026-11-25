@@ -5,6 +5,7 @@ import { prefs } from '../lib/socket.js';
 import { useInstall } from '../lib/install.js';
 import { Card } from './Card.jsx';
 import { Tutorial } from './Tutorial.jsx';
+import { OnlineLobby } from './OnlineLobby.jsx';
 import { SHELL_HTML } from '../shell/markup.js';
 import { mountShell } from '../shell/shell.js';
 import '../shell/shell.css';
@@ -27,6 +28,8 @@ export function Home() {
   const installRef = useRef(install);
   installRef.current = install;
   const [fan, setFan] = useState(null);
+  const [lobby, setLobby] = useState(false);
+  const shellApi = useRef(null);
   const [tutorial, setTutorial] = useState(() => !prefs.get('tutorialDone', false) && !new URLSearchParams(location.search).get('room'));
 
   useEffect(() => {
@@ -37,6 +40,8 @@ export function Home() {
     visited = true;
     const g = () => live.current;
     return mountShell(root, {
+      openLobby: () => setLobby(true),
+      ready: (h) => { shellApi.current = h; },
       startView,
       getProfile: () => prefs.get('profile', g().profile),
       setProfile: (p) => g().setProfile(p),
@@ -54,6 +59,7 @@ export function Home() {
     <div className="sh h-full overflow-y-auto">
       <div ref={ref} />
       {fan && createPortal(heroCards.map((c) => <div key={c.id} className="fc"><Card card={c} size={104} /></div>), fan)}
+      {lobby && <OnlineLobby onClose={() => setLobby(false)} onNeedCoins={(b) => { setLobby(false); shellApi.current?.needCoins(b); }} />}
       {tutorial && (
         <Tutorial
           onSkip={() => { setTutorial(false); prefs.set('tutorialDone', true); }}

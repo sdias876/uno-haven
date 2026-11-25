@@ -213,7 +213,8 @@ export function mountShell(root, api) {
     if (!api.connected()) { toast('Waking up the game server… try again in a moment.', true, 3500); return; }
     run(() => api.createRoom());
   };
-  $('mFriends').onclick = friends; $('mInvite').onclick = friends; $('mInvite2').onclick = friends;
+  $('mFriends').onclick = () => { if (needName()) return; api.openLobby ? api.openLobby() : friends(); };
+  $('mInvite').onclick = friends; $('mInvite2').onclick = friends;
   const openJoin = (code = '') => {
     $('codeIn').value = code;
     $('joinNote').textContent = code ? 'You were invited to this table.' : '';
@@ -493,6 +494,7 @@ export function mountShell(root, api) {
   all('.overlay').forEach((o) => o.addEventListener('click', (e) => { if (e.target === o) o.hidden = true; }));
 
   // ---- start ----
+  api.ready?.({ needCoins: (b) => { show('menu'); needCoins(b); } });
   const invited = new URLSearchParams(location.search).get('room');
   renderWallet();
   if (invited) { show('menu'); openJoin(invited.toUpperCase().slice(0, 5)); }

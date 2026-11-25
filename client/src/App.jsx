@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { GameProvider, useGame } from './lib/store.jsx';
 import { Home } from './components/Home.jsx';
 import { Lobby } from './components/Lobby.jsx';
+import { PublicWait } from './components/OnlineLobby.jsx';
 import { Table } from './components/Table.jsx';
 import { Banners, Toasts } from './components/Social.jsx';
 
@@ -14,7 +15,7 @@ function Screen() {
       {/* Fade in only: an exit animation would keep the old screen mounted after its room is gone */}
       <motion.div key={view} className="relative z-[1] h-full" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2 }}>
         {view === 'home' && <Home />}
-        {view === 'lobby' && <Lobby />}
+        {view === 'lobby' && (room.isPublic ? <PublicWait /> : <Lobby />)}
         {view === 'table' && <Table />}
       </motion.div>
       {room && !connected && (

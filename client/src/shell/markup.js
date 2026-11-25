@@ -113,7 +113,7 @@ export const SHELL_HTML = `
     </div>
     <div class="m-rings">
       ${ring('green', 'mPlay', 'play', 'PLAY NOW')}
-      ${ring('blue', 'mFriends', 'globe', 'PLAY FRIENDS', orbit)}
+      ${ring('blue', 'mFriends', 'globe', 'ONLINE LOBBY', orbit)}
       ${ring('purple', 'mJoin', 'lock', 'JOIN A GAME', '', 'lockw').replace('</button>', '<span class="now-open">GOT A CODE?</span></button>')}
     </div>
   </main>

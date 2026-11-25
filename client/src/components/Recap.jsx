@@ -30,10 +30,12 @@ export function Recap() {
   return (
     <motion.div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-3" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
       {iWon && <Confetti />}
-      <motion.div className="glass rounded-3xl w-full max-w-2xl max-h-[92vh] overflow-y-auto scrollbar-thin p-5 sm:p-7"
+      <motion.div className="glass rounded-3xl w-full max-w-4xl max-h-[94vh] overflow-y-auto sm:overflow-hidden scrollbar-thin p-4 sm:p-6 flex flex-col sm:flex-row gap-5"
         initial={{ scale: 0.85, y: 30 }} animate={{ scale: 1, y: 0 }} transition={{ type: 'spring', stiffness: 260, damping: 22 }}>
+        {/* Result and buttons: always on screen */}
+        <div className="sm:w-72 shrink-0 flex flex-col items-center justify-center">
         <div className="text-center">
-          <img src={iWon ? '/ui/go-win.webp' : '/ui/go-lose.webp'} alt="" className="w-28 h-28 mx-auto object-contain drop-shadow-[0_10px_20px_rgba(0,0,0,.5)]" />
+          <img src={iWon ? '/ui/go-win.webp' : '/ui/go-lose.webp'} alt="" className="w-20 h-20 sm:w-28 sm:h-28 mx-auto object-contain drop-shadow-[0_10px_20px_rgba(0,0,0,.5)]" />
           <h2 className="font-display text-3xl sm:text-4xl">{iWon ? 'You win!' : `${r.winnerName.replace(' 🤖', '')} wins!`}</h2>
           <p className="text-white/70 mt-1">{r.score} points in {r.totalTurns} turns</p>
           {coins?.bet > 0 && (
@@ -48,9 +50,20 @@ export function Recap() {
             </p>
           )}
         </div>
-
-        <h3 className="font-display text-gold text-xl mt-6 mb-2">Smart Match Recap</h3>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+        <div className="mt-4 flex flex-col gap-2 w-full">
+          {me?.role === 'player' && (
+            <button onClick={actions.rematch} disabled={voted && !isHost} className="btn-gold text-lg !py-2.5 w-full">
+              🔁 {isHost ? 'Rematch with same group' : voted ? 'Waiting for host…' : 'Vote rematch'}
+            </button>
+          )}
+          {isHost && <button onClick={actions.backToLobby} className="btn-ghost w-full">⚙️ Change rules / seats</button>}
+          <button onClick={actions.leave} className="btn-ghost w-full">Leave table</button>
+        </div>
+        </div>
+        {/* Match details: scroll inside if a big table needs it */}
+        <div className="flex-1 min-w-0 sm:min-h-0 sm:overflow-y-auto scrollbar-thin sm:pr-1">
+        <h3 className="font-display text-gold text-xl mb-2">Smart Match Recap</h3>
+        <div className="grid grid-cols-3 gap-2">
           <Stat delay={0.1} icon="😈" label="Most ruthless move"
             value={h.mostRuthless ? `${h.mostRuthless.by.replace(' 🤖', '')} → ${h.mostRuthless.victim.replace(' 🤖', '')}` : 'Peaceful game'}
             sub={h.mostRuthless ? `+${h.mostRuthless.amount} via ${via[h.mostRuthless.via] ?? h.mostRuthless.via}` : 'No penalties dealt'} />
@@ -62,29 +75,28 @@ export function Recap() {
             sub={h.fastest ? `${(h.fastest.avgTurnMs / 1000).toFixed(1)}s per turn` : ''} />
         </div>
 
-        <div className="mt-5 rounded-2xl overflow-hidden border border-white/10">
+        <div className="mt-3 rounded-2xl overflow-hidden border border-white/10">
           <table className="w-full text-sm">
             <thead className="bg-white/5 text-white/60 text-xs">
-              <tr><th className="text-left p-2">Player</th><th className="p-2">Left</th><th className="p-2">Played</th><th className="p-2">Drew</th><th className="p-2 hidden sm:table-cell">Actions</th><th className="p-2 hidden sm:table-cell">Catches</th><th className="p-2">Avg turn</th></tr>
+              <tr><th className="text-left px-2 py-1.5">Player</th><th className="px-2 py-1.5">Left</th><th className="px-2 py-1.5">Played</th><th className="px-2 py-1.5">Drew</th><th className="px-2 py-1.5 hidden sm:table-cell">Actions</th><th className="px-2 py-1.5 hidden sm:table-cell">Catches</th><th className="px-2 py-1.5">Avg turn</th></tr>
             </thead>
             <tbody>
               {players.map((p) => (
                 <tr key={p.id} className={`border-t border-white/5 ${p.id === me?.id ? 'bg-gold/10' : ''}`}>
-                  <td className="p-2 font-bold">{p.id === r.winnerId ? '👑 ' : ''}{p.name}</td>
-                  <td className="p-2 text-center">{p.cardsLeft}</td>
-                  <td className="p-2 text-center">{p.cardsPlayed}</td>
-                  <td className="p-2 text-center">{p.cardsDrawn}</td>
-                  <td className="p-2 text-center hidden sm:table-cell">{p.actionCards + p.wildsPlayed}</td>
-                  <td className="p-2 text-center hidden sm:table-cell">{p.caughtOthers}</td>
-                  <td className="p-2 text-center">{p.avgTurnMs ? `${(p.avgTurnMs / 1000).toFixed(1)}s` : '—'}</td>
+                  <td className="px-2 py-1.5 font-bold">{p.id === r.winnerId ? '👑 ' : ''}{p.name}</td>
+                  <td className="px-2 py-1.5 text-center">{p.cardsLeft}</td>
+                  <td className="px-2 py-1.5 text-center">{p.cardsPlayed}</td>
+                  <td className="px-2 py-1.5 text-center">{p.cardsDrawn}</td>
+                  <td className="px-2 py-1.5 text-center hidden sm:table-cell">{p.actionCards + p.wildsPlayed}</td>
+                  <td className="px-2 py-1.5 text-center hidden sm:table-cell">{p.caughtOthers}</td>
+                  <td className="px-2 py-1.5 text-center">{p.avgTurnMs ? `${(p.avgTurnMs / 1000).toFixed(1)}s` : '—'}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-
         {game?.players?.some((p) => p.hand?.length) && (
-          <div className="mt-4">
+          <div className="mt-3">
             <div className="text-sm text-white/60 mb-1">Cards left in hands</div>
             <div className="space-y-1.5">
               {game.players.filter((p) => p.hand?.length).map((p) => (
@@ -96,10 +108,9 @@ export function Recap() {
             </div>
           </div>
         )}
-
-        <details className="mt-4 text-sm">
-          <summary className="cursor-pointer text-white/70 font-bold">▶ Replay timeline (last {r.timeline.length} moves)</summary>
-          <ol className="mt-2 space-y-0.5 max-h-48 overflow-y-auto scrollbar-thin text-white/75 text-xs">
+        <details className="mt-3 text-sm">
+          <summary className="cursor-pointer text-white/70 font-bold">Replay timeline (last {r.timeline.length} moves)</summary>
+          <ol className="mt-2 space-y-0.5 max-h-32 overflow-y-auto scrollbar-thin text-white/75 text-xs">
             {r.timeline.map((e, i) => (
               <li key={i}>
                 <span className="text-white/40 mr-2">T{e.turn}</span>
@@ -115,15 +126,6 @@ export function Recap() {
             ))}
           </ol>
         </details>
-
-        <div className="mt-6 flex flex-col sm:flex-row gap-2 justify-center">
-          {me?.role === 'player' && (
-            <button onClick={actions.rematch} disabled={voted && !isHost} className="btn-gold text-lg !py-3">
-              🔁 {isHost ? 'Rematch with same group' : voted ? 'Waiting for host…' : 'Vote rematch'}
-            </button>
-          )}
-          {isHost && <button onClick={actions.backToLobby} className="btn-ghost">⚙️ Change rules / seats</button>}
-          <button onClick={actions.leave} className="btn-ghost">Leave table</button>
         </div>
       </motion.div>
     </motion.div>

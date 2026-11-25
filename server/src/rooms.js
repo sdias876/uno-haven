@@ -57,6 +57,11 @@ const BOT_PHOTOS = [
   ['b42', 'Youssef']
 ];
 export const BETS = [0, 100, 500, 1000, 2500, 5000, 10000];
+// Public (online lobby) tables: anyone can sit down; empty seats get a computer player after FILL_MS.
+export const PUBLIC_SIZES = [2, 3, 4];
+export const PUBLIC_BETS = [100, 500, 1000, 2500, 5000, 10000];
+const FILL_MS = 30_000;
+const CITY_BY_BET = { 100: 'New York', 500: 'Chicago', 1000: 'Miami', 2500: 'Seattle', 5000: 'Las Vegas', 10000: 'London' };
 
 const clampStrength = (v) => Math.max(0.1, Math.min(0.95, Number(v) || 0.45));
 const id = (prefix) => `${prefix}_${randomHex(6)}`;
@@ -82,6 +87,25 @@ export class RoomManager {
     return room;
   }
   get(code) { return this.rooms.get(String(code ?? '').toUpperCase()); }
+  /** A waiting public table with the same size and bet and a free seat, else a new one. */
+  quick({ size, bet }) {
+    size = PUBLIC_SIZES.includes(size) ? size : 4;
+    bet = PUBLIC_BETS.includes(bet) ? bet : 500;
+    const open = [...this.rooms.values()].find((r) => r.isPublic && r.phase === 'lobby' && r.size === size && r.settings.bet === bet && r.seats.length < size && r.humans().some((h) => h.connected));
+    return open ?? this.create({ isPublic: true, size, bet });
+  }
+  /** What the online lobby shows: public tables that still have a real player. */
+  list() {
+    const tables = [];
+    for (const r of this.rooms.values()) {
+      if (!r.isPublic || !r.humans().some((h) => h.connected)) continue;
+      tables.push({
+        code: r.code, size: r.size, bet: r.settings.bet, city: r.settings.city, phase: r.phase === 'lobby' ? 'waiting' : 'playing',
+        seats: r.seats.map((s) => ({ name: s.name, avatar: s.avatar, isBot: s.isBot })), watchers: r.spectators.size,
+      });
+    }
+    return tables;
+  }
   delete(code) {
     const r = this.rooms.get(code);
     if (r) r.dispose();
@@ -90,8 +114,11 @@ export class RoomManager {
 }
 
 class Room {
-  constructor(code, manager, { skill } = {}) {
+  constructor(code, manager, { skill, isPublic = false, size = 4, bet = 500 } = {}) {
     this.code = code;
+    this.isPublic = !!isPublic;
+    this.size = isPublic ? size : MAX_SEATS;
+    this.fillAt = null;
     // Adaptive bot strength (0..1). Starts from the player's saved skill, tuned after each match.
     this.botStrength = clampStrength(typeof skill === 'number' ? skill : 0.45);
     this.botTrend = null;
@@ -111,6 +138,31 @@ class Room {
     this.turnEndsAt = null;
     this.lastChat = new Map();
     this.matchNumber = 0;
+    if (this.isPublic) { this.settings.bet = bet; this.settings.city = CITY_BY_BET[bet] ?? 'New York'; this.armFill(); }
+  }
+
+  // ---------- public tables ----------
+  /** Start the countdown after which computer players take the empty seats. */
+  armFill() {
+    clearTimeout(this.timers.fill);
+    this.fillAt = Date.now() + FILL_MS;
+    this.timers.fill = setTimeout(() => this.fillAndStart(), FILL_MS);
+  }
+  fillAndStart() {
+    clearTimeout(this.timers.fill);
+    this.fillAt = null;
+    if (!this.isPublic || this.phase === 'playing') return;
+    if (!this.humans().some((h) => h.connected)) return;
+    while (this.seats.length < this.size) this.addBot('smart');
+    this.start();
+    this.broadcast();
+  }
+  /** Public table is full of people: start in a moment. */
+  checkFull() {
+    if (!this.isPublic || this.phase === 'playing' || this.seats.length < this.size) return;
+    clearTimeout(this.timers.fill);
+    this.fillAt = null;
+    this.timers.fill = setTimeout(() => { if (this.phase !== 'playing' && this.seats.length >= 2) { this.start(); this.broadcast(); } }, 1500);
   }
 
   // ---------- membership ----------
@@ -166,7 +218,7 @@ class Room {
     const spec = this.spectators.get(socket.id);
     if (!spec) return { error: 'You are not spectating' };
     if (this.phase === 'playing') return { error: 'Wait for the next round' };
-    if (this.seats.length >= MAX_SEATS) return { error: 'Table is full' };
+    if (this.seats.length >= this.size) return { error: 'Table is full' };
     this.spectators.delete(socket.id);
     const seat = this.addHuman(socket, spec);
     return { seat };
@@ -245,7 +297,7 @@ class Room {
 
   addBot(level) {
     if (this.phase === 'playing') return { error: 'Game in progress' };
-    if (this.seats.length >= MAX_SEATS) return { error: 'Table is full' };
+    if (this.seats.length >= this.size) return { error: 'Table is full' };
     const lvl = ALL_LEVELS.includes(level) ? level : 'smart';
     const used = new Set(this.seats.map((s) => s.avatar));
     const names = new Set(this.seats.map((s) => s.name));
@@ -291,6 +343,8 @@ class Room {
   start() {
     if (this.phase === 'playing') return { error: 'Already playing' };
     if (this.seats.length < 2) return { error: 'Need at least 2 players — add a bot!' };
+    clearTimeout(this.timers.fill);
+    this.fillAt = null;
     this.clearGameTimers();
     this.game = new UnoGame({ players: this.seats.map((s) => ({ id: s.id, name: s.name })), rules: this.rules });
     this.phase = 'playing';
@@ -480,6 +534,7 @@ class Room {
 
   dispose() {
     this.clearGameTimers();
+    clearTimeout(this.timers.fill);
     clearTimeout(this.timers.ttl);
     for (const t of this.timers.reclaim.values()) clearTimeout(t);
   }
@@ -525,7 +580,9 @@ class Room {
       hostId: this.hostId,
       rules: this.rules,
       settings: this.settings,
-      maxSeats: MAX_SEATS,
+      maxSeats: this.size,
+      isPublic: this.isPublic,
+      fillMsLeft: this.fillAt ? Math.max(0, this.fillAt - Date.now()) : null,
       matchNumber: this.matchNumber,
       botStrength: Math.round(this.botStrength * 100) / 100,
       botTrend: this.botTrend,

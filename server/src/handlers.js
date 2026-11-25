@@ -1,6 +1,5 @@
 // Socket event routing. Shared by the real server (index.js) and the
 // in-browser offline mode (client/src/lib/local.js), so both behave identically.
-import { MAX_SEATS } from './rooms.js';
 
 /** Wrap handlers: always ack, never crash the process on a bad payload. */
 function on(socket, event, handler) {
@@ -29,7 +28,18 @@ io.on('connection', (socket) => {
     return { ok: true, code: r.code, token: seat.token, playerId: seat.id, ...r.snapshotFor(socket) };
   });
 
-  on(socket, 'room:join', ({ code, name, avatar, token }) => {
+  // Online lobby: sit at a public table (matched by size and bet) or list the live ones.
+  on(socket, 'room:quick', ({ name, avatar, size, bet }) => {
+    leaveCurrent();
+    const r = rooms.quick({ size: Number(size), bet: Number(bet) });
+    const seat = r.addHuman(socket, { name, avatar });
+    r.checkFull();
+    r.broadcast();
+    return { ok: true, code: r.code, role: 'player', token: seat.token, playerId: seat.id, ...r.snapshotFor(socket) };
+  });
+  on(socket, 'rooms:list', () => ({ ok: true, tables: rooms.list(), online: io.engine?.clientsCount ?? 1 }));
+
+  on(socket, 'room:join', ({ code, name, avatar, token, watch }) => {
     const r = rooms.get(code);
     if (!r) return { error: 'Room not found — check the code' };
     if (socket.data.roomCode && socket.data.roomCode !== r.code) leaveCurrent();
@@ -37,8 +47,9 @@ io.on('connection', (socket) => {
       const seat = r.reclaim(socket, token);
       if (seat) { r.broadcast(); return { ok: true, code: r.code, role: 'player', token: seat.token, playerId: seat.id, ...r.snapshotFor(socket) }; }
     }
-    if (r.phase !== 'playing' && r.seats.length < MAX_SEATS) {
+    if (r.phase !== 'playing' && r.seats.length < r.size && !watch) {
       const seat = r.addHuman(socket, { name, avatar });
+      r.checkFull();
       r.broadcast();
       return { ok: true, code: r.code, role: 'player', token: seat.token, playerId: seat.id, ...r.snapshotFor(socket) };
     }
@@ -63,6 +74,11 @@ io.on('connection', (socket) => {
     return fn(r, payload);
   };
 
+  on(socket, 'lobby:fillNow', member((r) => {
+    if (!r.isPublic || !r.seatBySocket(socket.id)) return { error: 'Not allowed' };
+    r.fillAndStart();
+    return { ok: true };
+  }));
   on(socket, 'lobby:addBot', hostOnly((r, { level }) => r.addBot(level)));
   on(socket, 'lobby:removeSeat', hostOnly((r, { playerId }) => r.removeSeat(playerId)));
   on(socket, 'lobby:botLevel', hostOnly((r, { playerId, level }) => r.setBotLevel(playerId, level)));

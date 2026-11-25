@@ -148,6 +148,21 @@ export function GameProvider({ children }) {
       if (!res.error) { session.set({ code: res.code, token: res.token ?? null, ...profile }); setChat(res.chat ?? []); }
       return res;
     },
+    /** Online lobby: sit at a public table with this many seats and this bet. */
+    async quickTable(size, bet) {
+      if (net.mode !== 'online') { net.useOnline(); setMode('online'); setConnected(net.connected); }
+      const res = await act('room:quick', { ...profile, size, bet });
+      if (!res.error) { session.set({ code: res.code, token: res.token, ...profile }); setChat(res.chat ?? []); }
+      return res;
+    },
+    async watchTable(code) {
+      if (net.mode !== 'online') { net.useOnline(); setMode('online'); setConnected(net.connected); }
+      const res = await act('room:join', { code, ...profile, watch: true });
+      if (!res.error) { session.set({ code: res.code, token: null, ...profile }); setChat(res.chat ?? []); }
+      return res;
+    },
+    listTables: () => send('rooms:list'),
+    fillNow: () => act('lobby:fillNow'),
     /** Solo vs bots runs entirely in this browser: instant start, works offline. */
     async quickPlay(levels = ['smart', 'smart', 'smart'], rules, { bet = 0 } = {}) {
       await net.useLocal();
