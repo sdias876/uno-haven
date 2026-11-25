@@ -1,4 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion';
+import { Avatar } from './Avatar.jsx';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useGame } from '../lib/store.jsx';
 import { prefs } from '../lib/socket.js';
@@ -121,7 +122,7 @@ function Opponent({ seat, player, isTurn, vulnerable, onCatch, revealHand, timer
         <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full grid place-items-center text-2xl sm:text-3xl transition
           ${isTurn ? 'bg-gradient-to-b from-[#2a3675] to-[#18214f] shadow-[0_0_0_3px_#d9b26a,0_0_24px_rgba(217,178,106,.45)]' : 'bg-gradient-to-b from-[#1f2a5e] to-[#121a45] shadow-[0_0_0_2px_rgba(255,255,255,.12)]'}
           ${!seat.connected ? 'opacity-50' : ''}`}>
-          {seat.avatar}
+          <Avatar k={seat.avatar} size={48} className="sm:!w-14 sm:!h-14" />
         </div>
         {seat.autopilot && <span className="absolute -bottom-1 -right-1 chip bg-sky-500 !px-1.5 !py-0.5 text-[10px]" title="Autopilot is playing">🤖</span>}
         {count === 1 && !vulnerable && <span className="absolute -top-2 -right-4 chip bg-uno-red text-white font-display !text-[11px] rotate-12 shadow">UNO</span>}
@@ -400,7 +401,7 @@ export function Table() {
             {hint?.tip ? <Coach tip={hint.tip} onClose={() => setHint(null)} /> : <TipBubble tip={tip} onClose={dismissTip} />}
           </div>
           <div className="flex items-center justify-center gap-2 px-3 min-h-[40px]">
-            <span className={`md:hidden chip ${myTurn ? 'bg-gold text-felt-900' : 'bg-black/40'}`}>{seatsById[myId]?.avatar} {myCount}</span>
+            <span className={`md:hidden chip ${myTurn ? 'bg-gold text-felt-900' : 'bg-black/40'}`}><Avatar k={seatsById[myId]?.avatar} size={20} className="inline-block align-middle" /> {myCount}</span>
             {coachOn && myTurn && (
               <button onClick={askHint} className="btn-ghost !py-2 text-sm" title="Smart Hint (H)">💡 Hint</button>
             )}
@@ -422,7 +423,7 @@ export function Table() {
           <div className="relative">
             <div className="absolute left-3 top-5 z-10 hidden md:flex items-center gap-2">
               <div className={`relative w-11 h-11 rounded-full grid place-items-center text-2xl ${myTurn ? 'bg-gold/30 ring-4 ring-gold' : 'bg-white/10'}`}>
-                {seatsById[myId]?.avatar}
+                <Avatar k={seatsById[myId]?.avatar} size={44} />
               </div>
               <span className="chip bg-black/40">{myCount}</span>
             </div>

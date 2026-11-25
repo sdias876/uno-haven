@@ -4,6 +4,7 @@
    Midnight felt, a brass rail, and one memorable thing: a slow aurora glow. */
 @theme {
   --font-display: "Lilita One", "Arial Rounded MT Bold", ui-rounded, system-ui, sans-serif;
+  --font-bebas: "Bebas Neue", Impact, "Arial Narrow", sans-serif;
   --font-sans: "Outfit Variable", "Outfit", ui-sans-serif, system-ui, sans-serif;
 
   --color-felt-950: #050918;
@@ -164,3 +165,38 @@ body {
 
 .scrollbar-thin::-webkit-scrollbar { width: 6px; }
 .scrollbar-thin::-webkit-scrollbar-thumb { background: rgba(255,255,255,.15); border-radius: 6px; }
+
+/* ───────────── Spade Haven family look (navy, gold, glossy pills) ───────────── */
+body {
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260' viewBox='0 0 260 260'%3E%3Cg fill='%23000' fill-opacity='.16'%3E%3Ctext x='20' y='110' font-size='120' font-family='serif'%3E%E2%99%A0%3C/text%3E%3Ctext x='150' y='230' font-size='120' font-family='serif'%3E%E2%99%A5%3C/text%3E%3C/g%3E%3Cg fill='%23fff' fill-opacity='.035'%3E%3Ctext x='150' y='100' font-size='110' font-family='serif'%3E%E2%99%A6%3C/text%3E%3Ctext x='20' y='240' font-size='110' font-family='serif'%3E%E2%99%A3%3C/text%3E%3C/g%3E%3C/svg%3E") 0 0/260px 260px,
+    radial-gradient(ellipse at 50% 25%, #2a3cc0 0%, #0e1660 50%, #050826 100%) fixed;
+  background-color: #070b33;
+}
+.aurora { opacity: .55; }
+.glass {
+  background: linear-gradient(180deg, rgba(34,54,184,.88), rgba(18,26,120,.9) 30%, rgba(11,17,78,.94));
+  border: 3px solid #7b8fff;
+  box-shadow: 0 0 0 4px rgba(10,10,60,.8), 0 0 36px rgba(110,90,255,.35), 0 18px 40px rgba(0,0,0,.5);
+}
+.btn-gold {
+  border-radius: 999px;
+  border: 2px solid rgba(255,255,255,.75);
+  color: #3a1d00;
+  font-family: var(--font-bebas);
+  font-weight: 400;
+  letter-spacing: 1.4px;
+  font-size: 1.25em;
+  background: linear-gradient(180deg, #ffd75e, #c97800);
+  text-shadow: 0 1px 0 rgba(255,255,255,.4);
+  box-shadow: 0 0 0 2px rgba(0,0,0,.35), inset 0 2px 0 rgba(255,255,255,.45), inset 0 -3px 0 rgba(0,0,0,.25), 0 4px 12px rgba(0,0,0,.35);
+}
+.btn-gold:active { box-shadow: 0 0 0 2px rgba(0,0,0,.35), inset 0 2px 0 rgba(255,255,255,.45); transform: translateY(2px); }
+.btn-ghost {
+  border-radius: 999px;
+  background: linear-gradient(180deg, #4b7dff, #1a2fa8);
+  border: 2px solid rgba(255,255,255,.55);
+  box-shadow: 0 0 0 2px rgba(0,0,0,.3), inset 0 2px 0 rgba(255,255,255,.35), 0 3px 8px rgba(0,0,0,.35);
+}
+.btn-ghost:hover { background: linear-gradient(180deg, #6f9bff, #2a40c0); border-color: #fff; }
+h1.font-display, h2.font-display { font-family: var(--font-bebas); letter-spacing: 2px; text-shadow: 0 3px 0 #0a0f4a; }

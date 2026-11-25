@@ -21,8 +21,8 @@ export default defineConfig({
         name: 'UNO Haven',
         short_name: 'UNO Haven',
         description: 'Smart card game with adaptive bots and a coach. Play solo offline or with friends.',
-        theme_color: '#0b1230',
-        background_color: '#070c22',
+        theme_color: '#0e1660',
+        background_color: '#070b33',
         display: 'standalone',
         orientation: 'any',
         start_url: '/',
@@ -38,6 +38,12 @@ export default defineConfig({
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/socket\.io/, /^\/healthz/],
         runtimeCaching: [
+          {
+            // Spade Haven pictures: cache after first view so menus and seats work offline
+            urlPattern: ({ url }) => /^\/(avatars|bots|ui)\//.test(url.pathname),
+            handler: 'CacheFirst',
+            options: { cacheName: 'pictures', expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 * 24 * 60 } },
+          },
           {
             // Google Fonts: cache so the app looks right offline
             urlPattern: /^https:\/\/fonts\.(googleapis|gstatic)\.com\/.*/i,

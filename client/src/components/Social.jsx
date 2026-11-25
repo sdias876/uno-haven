@@ -1,4 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion';
+import { Avatar } from './Avatar.jsx';
 import { useEffect, useRef, useState } from 'react';
 import { useGame } from '../lib/store.jsx';
 
@@ -67,7 +68,7 @@ export function ChatPanel({ open, onClose }) {
               <div key={m.id} className="text-xs text-center text-white/50 py-0.5">{m.text}</div>
             ) : (
               <div key={m.id} className="text-sm">
-                <span className="mr-1">{m.avatar}</span>
+                <Avatar k={m.avatar} size={20} className="inline-block align-middle mr-1" />
                 <span className={`font-bold ${m.spectator ? 'text-white/60' : 'text-gold'}`}>{m.from}{m.spectator ? ' (watching)' : ''}:</span>{' '}
                 <span className="text-white/90 break-words">{m.text}</span>
               </div>

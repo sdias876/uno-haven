@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { useGame } from '../lib/store.jsx';
 import { Card } from './Card.jsx';
+import { resultFor, fmt } from '../shell/wallet.js';
 
 const via = { wild4: 'a Wild Draw Four', draw2: 'a Draw Two', catch: 'an UNO catch' };
 
@@ -23,6 +24,7 @@ export function Recap() {
   const iWon = r.winnerId === me?.id;
   const voted = room.rematchVotes.includes(me?.id);
   const h = r.highlights;
+  const coins = resultFor(room);
   const players = r.players.slice().sort((a, b) => a.cardsLeft - b.cardsLeft);
 
   return (
@@ -31,9 +33,15 @@ export function Recap() {
       <motion.div className="glass rounded-3xl w-full max-w-2xl max-h-[92vh] overflow-y-auto scrollbar-thin p-5 sm:p-7"
         initial={{ scale: 0.85, y: 30 }} animate={{ scale: 1, y: 0 }} transition={{ type: 'spring', stiffness: 260, damping: 22 }}>
         <div className="text-center">
-          <div className="text-5xl mb-1">{iWon ? "🏆" : "🃏"}</div>
+          <img src={iWon ? '/ui/go-win.webp' : '/ui/go-lose.webp'} alt="" className="w-28 h-28 mx-auto object-contain drop-shadow-[0_10px_20px_rgba(0,0,0,.5)]" />
           <h2 className="font-display text-3xl sm:text-4xl">{iWon ? 'You win!' : `${r.winnerName.replace(' 🤖', '')} wins!`}</h2>
           <p className="text-white/70 mt-1">{r.score} points in {r.totalTurns} turns</p>
+          {coins?.bet > 0 && (
+            <div className={`mt-3 inline-flex items-center gap-2 rounded-full px-5 py-1.5 font-bebas text-3xl tracking-[2px] bg-black/40 border-2 ${coins.net > 0 ? 'text-[#ffd75e] border-[#ffc83d]/70' : 'text-[#ff9aa6] border-[#ff5a6e]/60'}`}>
+              <span className="grid place-items-center w-9 h-9 rounded-full text-lg text-[#8a5200] bg-[radial-gradient(circle_at_38%_30%,#fff4c2,#ffd75e_35%,#e09a00_75%,#a86a00)] shadow-[0_0_0_2px_#6b4306]">★</span>
+              {coins.net > 0 ? `+${fmt(coins.net)} coins` : `−${fmt(-coins.net)} coins`}
+            </div>
+          )}
           {room.botTrend && (
             <p className="mt-2 inline-block chip bg-white/10 !text-sm">
               {room.botTrend === 'up' ? '📈 Auto bots will play a little tougher next round' : '📉 Auto bots will ease off a little next round'}

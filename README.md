@@ -1,5 +1,19 @@
 # 🃏 UNO Haven
 
+**From the makers of Spade Haven.** UNO Haven uses the Spade Haven family look: a maroon-felt opening page, Spade Haven's main menu (Play Now, Play Friends, Join a Game), coins and bets, the Mega Bonus wheel, daily gifts, levels, stats, Spade Haven's player pictures and bot portraits, and a Settings window with Exit.
+
+### Coins (saved on each player's device)
+- Every player starts with **50,000 coins**.
+- **Play Now** opens the bet screen: pick the bots (Auto, Chill, Classic, Ruthless), the number of players and a bet from 100 to 10,000. **Quick Game** bets 500.
+- **Play Friends**: the host sets the table bet in the room (default 500, or "No bet").
+- The bet is taken when a match starts. **The winner takes the pot** (bet × players). The recap shows "+1,500 coins" or "−500 coins".
+- Earn more: the **Mega Bonus wheel** (free spin every 4 hours, 250–10,000), **+250 free coins** every hour, **daily gifts** (7-day streak, 1,000–5,000), and level-up bonuses.
+- Coins live in the browser's storage, so clearing the browser or switching devices starts over at 50,000.
+
+The opening page, menu and pop-ups live in `client/src/shell/` (`markup.js`, `shell.js`, `wallet.js`, `shell.css`). The pictures are in `client/public/{ui,avatars,bots}`.
+
+---
+
 UNO Haven is a multiplayer UNO-style card game that runs in the browser. Each move is checked by the server, so players can't cheat. It also has smart bots, a coach that suggests moves, house rules, voice "UNO!" calls, spectators, and a recap screen after every match. It works on desktop and mobile browsers.
 
 | Layer | Tech |

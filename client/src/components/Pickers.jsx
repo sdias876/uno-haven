@@ -1,4 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion';
+import { Avatar } from './Avatar.jsx';
 import { COLOR_HEX } from './Card.jsx';
 
 function Sheet({ open, onClose, title, children }) {
@@ -46,7 +47,7 @@ export function SwapPicker({ open, players, onPick, onClose }) {
       <div className="flex flex-col gap-2">
         {players.map((p) => (
           <button key={p.id} onClick={() => onPick(p.id)} className="btn-ghost justify-between !py-3">
-            <span className="flex items-center gap-2"><span className="text-xl">{p.avatar}</span>{p.name}</span>
+            <span className="flex items-center gap-2"><Avatar k={p.avatar} size={30} />{p.name}</span>
             <span className="chip bg-white/15">{p.cardCount} cards</span>
           </button>
         ))}

@@ -2,13 +2,61 @@
 
 import { randomInt, randomHex, randomToken } from './util.js';
 import { UnoGame, DEFAULT_RULES } from './game/engine.js';
-import { chooseBotMove, coachHint, botName, botRemembersUno, botCatchDelay, ALL_LEVELS, resolveLevel } from './game/ai.js';
+import { chooseBotMove, coachHint, botRemembersUno, botCatchDelay, ALL_LEVELS, resolveLevel } from './game/ai.js';
 
 export const MAX_SEATS = 6;
 const RECLAIM_MS = 60_000;
 const EMPTY_ROOM_TTL_MS = 5 * 60_000;
 const EMOTES = ['👍', '😂', '😱', '🔥', '😈', '🙏', '👏', '😭', '🎉', '💀'];
-const AVATARS = ['🦊', '🐼', '🐯', '🐸', '🦉', '🐙', '🦄', '🐨', '🐵', '🐧', '🦁', '🐳'];
+// Players pick one of Spade Haven's pictures (client/public/avatars/<id>.webp)
+const AVATAR_RE = /^(a|p)\d{1,2}$/;
+const okAvatar = (a, i = 0) => (AVATAR_RE.test(String(a ?? '')) ? a : `a${(i % 32) + 1}`);
+// Computer players use Spade Haven's bot portraits (client/public/bots/<id>.webp) and first names.
+const BOT_PHOTOS = [
+  ['b1', 'Jasmine'],
+  ['b2', 'Brooke'],
+  ['b3', 'Tala'],
+  ['b4', 'Camille'],
+  ['b5', 'Freya'],
+  ['b6', 'Aiko'],
+  ['b7', 'Anjali'],
+  ['b8', 'Imani'],
+  ['b9', 'Fiona'],
+  ['b10', 'Valeria'],
+  ['b11', 'Leilani'],
+  ['b12', 'Malia'],
+  ['b13', 'Darius'],
+  ['b14', 'Hunter'],
+  ['b15', 'Kenji'],
+  ['b16', 'Rafael'],
+  ['b17', 'Mateo'],
+  ['b18', 'Zayn'],
+  ['b19', 'Tane'],
+  ['b20', 'Lucas'],
+  ['b21', 'Giorgio'],
+  ['b22', 'Dimas'],
+  ['b23', 'Yuna'],
+  ['b24', 'Adaeze'],
+  ['b25', 'Luana'],
+  ['b26', 'Greta'],
+  ['b27', 'Divya'],
+  ['b28', 'Marisol'],
+  ['b29', 'Nadia'],
+  ['b30', 'Elsa'],
+  ['b31', 'Ji-woo'],
+  ['b32', 'Shanice'],
+  ['b33', 'Baraka'],
+  ['b34', 'Etienne'],
+  ['b35', 'Santiago'],
+  ['b36', 'Haruto'],
+  ['b37', 'Nikos'],
+  ['b38', 'Arjun'],
+  ['b39', 'Liam'],
+  ['b40', 'Ciaran'],
+  ['b41', 'Thabo'],
+  ['b42', 'Youssef']
+];
+export const BETS = [0, 100, 500, 1000, 2500, 5000, 10000];
 
 const clampStrength = (v) => Math.max(0.1, Math.min(0.95, Number(v) || 0.45));
 const id = (prefix) => `${prefix}_${randomHex(6)}`;
@@ -53,7 +101,7 @@ class Room {
     this.spectators = new Map(); // socketId -> { name, avatar }
     this.hostId = null;
     this.rules = { ...DEFAULT_RULES };
-    this.settings = { turnSeconds: 15, spectatorsSeeHands: true };
+    this.settings = { turnSeconds: 15, spectatorsSeeHands: true, bet: 500 };
     this.phase = 'lobby';       // lobby | playing | ended
     this.game = null;
     this.recap = null;
@@ -72,7 +120,7 @@ class Room {
 
   addHuman(socket, { name, avatar }) {
     const seat = {
-      id: id('p'), token: token(), name: clean(name) || 'Player', avatar: AVATARS.includes(avatar) ? avatar : AVATARS[this.seats.length % AVATARS.length],
+      id: id('p'), token: token(), name: clean(name) || 'Player', avatar: okAvatar(avatar, this.seats.length),
       isBot: false, botLevel: null, socketId: socket.id, connected: true, autopilot: false, afkStrikes: 0,
     };
     this.seats.push(seat);
@@ -102,7 +150,7 @@ class Room {
   }
 
   addSpectator(socket, { name, avatar }) {
-    this.spectators.set(socket.id, { name: clean(name) || 'Spectator', avatar: AVATARS.includes(avatar) ? avatar : '👀' });
+    this.spectators.set(socket.id, { name: clean(name) || 'Spectator', avatar: okAvatar(avatar, this.spectators.size) });
     this.attach(socket);
     this.system(`${clean(name) || 'A spectator'} is watching`);
   }
@@ -199,8 +247,12 @@ class Room {
     if (this.phase === 'playing') return { error: 'Game in progress' };
     if (this.seats.length >= MAX_SEATS) return { error: 'Table is full' };
     const lvl = ALL_LEVELS.includes(level) ? level : 'smart';
+    const used = new Set(this.seats.map((s) => s.avatar));
+    const names = new Set(this.seats.map((s) => s.name));
+    const free = BOT_PHOTOS.filter(([a, n]) => !used.has(a) && !names.has(n));
+    const [avatar, name] = (free.length ? free : BOT_PHOTOS)[randomInt(free.length || BOT_PHOTOS.length)];
     const seat = {
-      id: id('bot'), token: null, name: botName(lvl, this.seats.map((s) => s.name)), avatar: '🤖',
+      id: id('bot'), token: null, name, avatar,
       isBot: true, botLevel: lvl, socketId: null, connected: true, autopilot: false, afkStrikes: 0,
     };
     this.seats.push(seat);
@@ -224,7 +276,6 @@ class Room {
     const seat = this.seatById(pid);
     if (!seat?.isBot || !ALL_LEVELS.includes(level)) return { error: 'Invalid' };
     seat.botLevel = level;
-    seat.name = botName(level, this.seats.filter((s) => s !== seat).map((s) => s.name));
     return { ok: true };
   }
 
@@ -233,6 +284,7 @@ class Room {
     for (const k of Object.keys(DEFAULT_RULES)) if (typeof rules[k] === 'boolean') this.rules[k] = rules[k];
     if ([0, 15, 30, 60].includes(settings.turnSeconds)) this.settings.turnSeconds = settings.turnSeconds;
     if (typeof settings.spectatorsSeeHands === 'boolean') this.settings.spectatorsSeeHands = settings.spectatorsSeeHands;
+    if (BETS.includes(settings.bet)) this.settings.bet = settings.bet;
     return { ok: true };
   }
 

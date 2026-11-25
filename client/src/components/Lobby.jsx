@@ -1,7 +1,13 @@
 import { AnimatePresence, motion } from 'framer-motion';
+import { Avatar } from './Avatar.jsx';
 import { useState } from 'react';
 import { useGame } from '../lib/store.jsx';
 import { ChatPanel } from './Social.jsx';
+import { P, fmt } from '../shell/wallet.js';
+
+const BET_CHOICES = [0, 100, 500, 1000, 2500, 5000, 10000];
+const CITIES = [['newyork', 'New York'], ['monaco', 'Monaco'], ['seattle', 'Seattle'], ['chicago', 'Chicago'], ['miami', 'Miami'], ['lasvegas', 'Las Vegas'], ['london', 'London']];
+const cityFor = (code) => { let h = 0; for (const ch of String(code)) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return CITIES[h % CITIES.length]; };
 
 const RULES = [
   { key: 'stacking', icon: '🥞', title: 'Stacking', desc: '+2 on +2, +4 on +4 — the unlucky one draws the total.' },
@@ -41,6 +47,10 @@ export function Lobby() {
   return (
     <div className="felt min-h-full overflow-y-auto">
       <div className="max-w-4xl mx-auto p-4 sm:p-6">
+        <div className="relative h-32 sm:h-40 -mx-4 sm:mx-0 -mt-4 sm:mt-0 mb-4 sm:rounded-3xl overflow-hidden bg-cover bg-center" style={{ backgroundImage: `url(/ui/city/${cityFor(room.code)[0]}.webp)` }}>
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#0b114e]" />
+          <div className="absolute left-5 bottom-2 font-bebas text-4xl sm:text-5xl tracking-[3px] text-white drop-shadow-[0_3px_0_#0a0f4a]">{cityFor(room.code)[1].toUpperCase()} TABLE</div>
+        </div>
         <div className="flex items-center gap-3 mb-5">
           <h1 className="font-display text-3xl">Table <span className="tracking-[0.12em] text-gold">{room.code}</span></h1>
           <div className="ml-auto flex gap-2">
@@ -70,7 +80,7 @@ export function Lobby() {
                 {room.seats.map((s) => (
                   <motion.li key={s.id} layout initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 20, opacity: 0 }}
                     className={`flex items-center gap-3 rounded-2xl px-3 py-2 ${s.id === me?.id ? 'bg-gold/15 ring-1 ring-gold/40' : 'bg-white/5'}`}>
-                    <span className="text-2xl">{s.avatar}</span>
+                    <Avatar k={s.avatar} size={40} className="ring-2 ring-white/70" />
                     <div className="min-w-0 flex-1">
                       <div className="font-bold truncate">{s.name}{s.id === me?.id ? ' (you)' : ''}</div>
                       <div className="text-xs text-white/50">
@@ -127,6 +137,14 @@ export function Lobby() {
               ))}
             </ul>
             <div className="border-t border-white/10 mt-4 pt-3 space-y-3">
+              <div className="flex items-center gap-3">
+                <img src="/ui/coins.webp" alt="" className="w-8 h-8" />
+                <div className="flex-1"><div className="font-bold">Table bet</div><div className="text-xs text-white/60">{room.settings.bet ? `Winner takes ${fmt(room.settings.bet * room.seats.length)} coins · you have ${fmt(P.coins)}` : 'Friendly game, no coins'}</div></div>
+                <select disabled={!isHost} value={room.settings.bet ?? 0} onChange={(e) => actions.setRules({}, { bet: Number(e.target.value) })}
+                  className="bg-white/10 rounded-lg text-sm px-2 py-1 outline-none">
+                  {BET_CHOICES.map((b) => <option key={b} value={b} className="text-black">{b ? fmt(b) : 'No bet'}</option>)}
+                </select>
+              </div>
               <div className="flex items-center gap-3">
                 <span className="text-2xl">⏱️</span>
                 <div className="flex-1"><div className="font-bold">Turn timer</div><div className="text-xs text-white/60">Autopilot plays when time runs out</div></div>

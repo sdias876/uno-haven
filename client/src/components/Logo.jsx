@@ -1,42 +1,16 @@
-import { motion } from 'framer-motion';
+import { emblem } from '../shell/markup.js';
 
-const TILES = [
-  { ch: 'U', bg: 'linear-gradient(160deg,#ff5a5d,#c9262a)', rot: -10 },
-  { ch: 'N', bg: 'linear-gradient(160deg,#ffd96e,#d9a21c)', rot: 3 },
-  { ch: 'O', bg: 'linear-gradient(160deg,#47d18d,#1c8f5b)', rot: 12 },
-];
+const EMBLEM = emblem('lg');
 
-/** Wordmark: three mini card tiles + "Haven" in brass. `size` = tile height in px. */
-export function Logo({ size = 40, animate = false, className = '' }) {
-  const tileW = size * 0.74;
+/** UNO Haven wordmark: the gold emblem + "UNO HAVEN" in gold, like Spade Haven's. `size` = emblem height in px. */
+export function Logo({ size = 40, className = '' }) {
   return (
-    <div className={`inline-flex items-center ${className}`} aria-label="UNO Haven" role="img">
-      <div className="flex" style={{ gap: size * 0.04 }}>
-        {TILES.map((t, i) => (
-          <motion.span key={t.ch}
-            initial={animate ? { y: -size, rotate: t.rot - 40, opacity: 0 } : false}
-            animate={{ y: 0, rotate: t.rot, opacity: 1 }}
-            transition={{ delay: 0.15 + i * 0.09, type: 'spring', stiffness: 320, damping: 16 }}
-            className="relative grid place-items-center font-display text-white"
-            style={{
-              width: tileW, height: size, background: t.bg, borderRadius: size * 0.16,
-              border: `${Math.max(2, size * 0.06)}px solid #fff`,
-              boxShadow: `0 ${size * 0.06}px 0 rgba(0,0,0,.25), 0 ${size * 0.15}px ${size * 0.3}px rgba(0,0,0,.35)`,
-              fontSize: size * 0.62, WebkitTextStroke: `${size * 0.03}px #151a36`, paintOrder: 'stroke fill',
-              textShadow: `0 ${size * 0.04}px 0 #151a36`,
-            }}>
-            {t.ch}
-          </motion.span>
-        ))}
-      </div>
-      <span className="font-display ml-[0.35em] leading-none"
-        style={{
-          fontSize: size * 0.78,
-          background: 'linear-gradient(180deg,#f6e2b0 0%,#d9b26a 55%,#a77d3a 100%)',
-          WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent',
-          filter: 'drop-shadow(0 2px 0 rgba(0,0,0,.45))',
-        }}>
-        Haven
+    <div className={`inline-flex items-center gap-2 ${className}`} aria-label="UNO Haven" role="img">
+      <span className="shrink-0 drop-shadow-[0_3px_5px_rgba(0,0,0,.5)] [&>svg]:w-full [&>svg]:h-full" style={{ width: size * 1.25, height: size * 1.25 }}
+        dangerouslySetInnerHTML={{ __html: EMBLEM }} />
+      <span className="font-bebas leading-none tracking-[2px] text-[#ffc83d]"
+        style={{ fontSize: size * 0.95, textShadow: '0 1px 0 #c08510, 0 2px 0 #7d5006, 0 3px 0 #5a3a05, 0 6px 10px rgba(0,0,0,.5)' }}>
+        UNO HAVEN
       </span>
     </div>
   );

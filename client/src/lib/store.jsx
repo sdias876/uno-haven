@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { net, send, session, prefs } from './socket.js';
 import { play, say } from './sound.js';
+import { settleBets } from '../shell/wallet.js';
 
 const Ctx = createContext(null);
 export const useGame = () => useContext(Ctx);
@@ -21,17 +22,19 @@ export function GameProvider({ children }) {
   const [emotes, setEmotes] = useState([]);
   const [shake, setShake] = useState(0);
   const [lastFx, setLastFx] = useState([]);
-  const [profile, setProfileState] = useState(() => prefs.get('profile', { name: '', avatar: '🦊' }));
+  const [profile, setProfileState] = useState(() => prefs.get('profile', { name: '', avatar: `a${1 + Math.floor(Math.random() * 32)}` }));
   const stateRef = useRef({});
   stateRef.current = { room, game, me };
 
   const setProfile = useCallback((p) => { setProfileState(p); prefs.set('profile', p); }, []);
 
+  const toastRef = useRef(null);
   const toast = useCallback((text, tone = 'info') => {
     const id = nid();
     setToasts((t) => [...t.slice(-3), { id, text, tone }]);
     setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 3200);
   }, []);
+  toastRef.current = toast;
   const banner = useCallback((text, color = 'gold') => {
     const id = nid();
     setBanners((b) => [...b.slice(-1), { id, text, color }]);
@@ -63,6 +66,7 @@ export function GameProvider({ children }) {
       const prev = stateRef.current;
       if (game && me?.id && game.turnPlayerId === me.id && prev.game?.turnPlayerId !== me.id && game.phase === 'playing') play('turn');
       setRoom(room); setGame(game); setMe(me);
+      settleBets(room, me, toastRef.current);
       // Remember how strong the adaptive bots got, so the next solo game starts there
       if (room?.phase === 'ended' && typeof room.botStrength === 'number' && room.botTrend) prefs.set('skill', room.botStrength);
     };
@@ -145,14 +149,14 @@ export function GameProvider({ children }) {
       return res;
     },
     /** Solo vs bots runs entirely in this browser: instant start, works offline. */
-    async quickPlay(levels = ['smart', 'smart', 'smart'], rules) {
+    async quickPlay(levels = ['smart', 'smart', 'smart'], rules, { bet = 0 } = {}) {
       await net.useLocal();
       setMode('local'); setConnected(true);
       const res = await act('room:create', { ...profile, skill: prefs.get('skill', 0.45) });
       if (res.error) return res;
       setChat(res.chat ?? []);
       for (const level of levels) await send('lobby:addBot', { level });
-      if (rules) await send('lobby:rules', { rules });
+      await send('lobby:rules', { rules: rules ?? {}, settings: { bet } });
       return act('lobby:start');
     },
     async leave() {
