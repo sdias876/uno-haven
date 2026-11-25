@@ -13,6 +13,9 @@ import { ChatPanel, EmoteBar, EmoteLayer } from './Social.jsx';
 import { Recap } from './Recap.jsx';
 import { Logo } from './Logo.jsx';
 import { useTips } from '../lib/tips.js';
+import { TableShape } from './TableShape.jsx';
+import { cityFor } from '../lib/city.js';
+import { fmt } from '../shell/wallet.js';
 
 const hash = (s) => [...s].reduce((h, c) => (h * 31 + c.charCodeAt(0)) | 0, 7);
 const valueName = (v) => ({ skip: 'Skip', reverse: 'Reverse', draw2: '+2', wild: 'Wild', wild4: '+4' }[v] ?? v);
@@ -76,16 +79,23 @@ function TopBar({ onChat, unread, voiceOn, setVoiceOn, listening, coachOn, setCo
       {!online && <span className="chip bg-white/8 text-white/60 hidden sm:inline">Solo game, works offline</span>}
       {online && room.spectators.length > 0 && <span className="chip bg-white/10">👀 {room.spectators.length}</span>}
       {voiceOn && listening && <span className="chip bg-emerald-500/30" title="Say “Ek!”">🎙️</span>}
+      <span className="ml-auto" />
+      {online && (
+        <button onClick={onChat} aria-label="Open chat" className="round-ui relative">
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinejoin="round" aria-hidden><path d="M4 5h16v11H9l-5 4z" /></svg>
+          {unread > 0 && <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-uno-red text-[11px] font-bold grid place-items-center">{unread}</span>}
+        </button>
+      )}
       <button onClick={() => setOpen((o) => !o)} aria-label="Menu" aria-expanded={open}
-        className="ml-auto relative btn-ghost !px-3 !py-2 text-lg leading-none">
-        ☰
-        {unread > 0 && !open && <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-uno-red text-[11px] font-bold grid place-items-center">{unread}</span>}
+        className="round-ui relative">
+        <svg viewBox="0 0 24 24" width="26" height="26" stroke="#fff" strokeWidth="2.6" strokeLinecap="round" aria-hidden><path d="M5 7h14M5 12h14M5 17h14" /></svg>
+        {!online && unread > 0 && !open && <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-uno-red text-[11px] font-bold grid place-items-center">{unread}</span>}
       </button>
       <AnimatePresence>
         {open && (
           <>
             <motion.div className="fixed inset-0 z-40" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={close} />
-            <motion.nav className="glass !bg-felt-800/95 absolute right-3 top-14 z-50 w-72 rounded-3xl p-2 shadow-2xl"
+            <motion.nav className="glass !bg-felt-800/95 absolute right-3 top-[72px] z-50 w-72 rounded-3xl p-2 shadow-2xl"
               initial={{ opacity: 0, y: -10, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -10, scale: 0.97 }}
               transition={{ type: 'spring', stiffness: 500, damping: 34 }}>
               {online && <MenuRow icon="🔗" label="Invite friends" sub={`Copies a link to table ${room.code}`} onClick={() => { invite(); close(); }} />}
@@ -106,7 +116,7 @@ function TopBar({ onChat, unread, voiceOn, setVoiceOn, listening, coachOn, setCo
   );
 }
 
-function Opponent({ seat, player, isTurn, vulnerable, onCatch, revealHand, timerPct }) {
+function Opponent({ seat, player, isTurn, vulnerable, onCatch, revealHand, timerPct, big }) {
   const count = player?.cardCount ?? 0;
   const shown = Math.min(count, 8);
   return (
@@ -119,21 +129,23 @@ function Opponent({ seat, player, isTurn, vulnerable, onCatch, revealHand, timer
               strokeDasharray={`${170 * timerPct} 170`} />
           </svg>
         )}
-        <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full grid place-items-center text-2xl sm:text-3xl transition
+        <div className={`${big ? 'seat-ring' : 'w-12 h-12 sm:w-14 sm:h-14'} rounded-full grid place-items-center text-2xl sm:text-3xl transition
           ${isTurn ? 'bg-gradient-to-b from-[#2a3675] to-[#18214f] shadow-[0_0_0_3px_#d9b26a,0_0_24px_rgba(217,178,106,.45)]' : 'bg-gradient-to-b from-[#1f2a5e] to-[#121a45] shadow-[0_0_0_2px_rgba(255,255,255,.12)]'}
           ${!seat.connected ? 'opacity-50' : ''}`}>
-          <Avatar k={seat.avatar} size={48} className="sm:!w-14 sm:!h-14" />
+          {big ? <Avatar k={seat.avatar} size={96} /> : <Avatar k={seat.avatar} size={48} className="sm:!w-14 sm:!h-14" />}
         </div>
         {seat.autopilot && <span className="absolute -bottom-1 -right-1 chip bg-sky-500 !px-1.5 !py-0.5 text-[10px]" title="Autopilot is playing">🤖</span>}
         {count === 1 && !vulnerable && <span className="absolute -top-2 -right-4 chip bg-uno-red text-white font-display !text-[11px] rotate-12 shadow">EK</span>}
       </div>
-      <div className={`text-xs sm:text-sm font-semibold max-w-[110px] truncate px-2.5 py-0.5 rounded-full ${isTurn ? 'bg-gold text-[#1b1405]' : 'bg-black/30 text-white/85'}`}>
+      <div className={big ? `seat-name ${isTurn ? 'turn' : ''}` : `text-xs sm:text-sm font-semibold max-w-[110px] truncate px-2.5 py-0.5 rounded-full ${isTurn ? 'bg-gold text-[#1b1405]' : 'bg-black/30 text-white/85'}`}>
         {seat.name.replace(' 🤖', '')}
       </div>
       {revealHand && player?.hand ? (
         <div className="flex -space-x-8 max-w-[220px] overflow-hidden">
           {player.hand.slice(0, 10).map((c) => <Card key={c.id} card={c} size="sm" />)}
         </div>
+      ) : big ? (
+        <div className="seat-count" aria-label={`${count} cards`}><Card faceDown size={30} /><b>{count}</b></div>
       ) : (
         <div className="relative h-[58px] flex items-end justify-center" style={{ width: 36 + shown * 10 }}>
           {Array.from({ length: shown }).map((_, i) => (
@@ -241,8 +253,14 @@ function TipBubble({ tip, onClose }) {
   );
 }
 
+// Where opponents sit around the big table, clockwise from your left (by number of opponents).
+const SLOTS = { 1: ['top'], 2: ['left', 'right'], 3: ['left', 'top', 'right'], 4: ['left', 'tl', 'tr', 'right'], 5: ['left', 'tl', 'top', 'tr', 'right'] };
+
 export function Table() {
   const { room, game, me, actions, shake, lastFx, chat, mode } = useGame();
+  const vp = useViewport();
+  // Computers, tablets and phones held sideways get Spade Haven's big table; phones held upright keep the compact layout.
+  const wide = vp.w >= 900 && vp.h >= 540 && vp.w > vp.h * 1.15;
   const [chatOpen, setChatOpen] = useState(false);
   const [emotesOpen, setEmotesOpen] = useState(false);
   const [tipsOn, setTipsOn] = useState(() => prefs.get('tips', true));
@@ -369,11 +387,54 @@ export function Table() {
   else status = `${turnSeat?.name?.replace(' 🤖', '') ?? '…'} is ${turnSeat?.isBot || turnSeat?.autopilot ? 'thinking' : 'playing'}…`;
   if (!myTurn && game.playable.length && game.rules.jumpIn) status = '⚡ Jump-In available — tap your glowing card!';
 
+  const city = cityFor(room.code);
+  const bet = Number(room.settings?.bet) || 0;
+  const centerBlock = (
+    <>
+        <CenterPiles game={game} canDraw={canDraw} onDraw={actions.draw} lastPlayFrom={lastPlayFrom} />
+        <motion.div key={status} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
+          className={`relative z-10 mt-9 px-4 py-1.5 rounded-full text-sm sm:text-base font-bold ${myTurn ? 'bg-gold text-felt-900 shadow-lg' : 'bg-black/30 text-white/85'}`}>
+          {status}{myTurn && secsLeft != null && room.settings.turnSeconds ? <span className={`ml-2 inline-grid place-items-center min-w-7 h-6 px-1.5 rounded-full text-xs ${secsLeft <= 5 ? 'bg-uno-red text-white' : 'bg-black/20'}`}>{secsLeft}</span> : null}
+        </motion.div>
+    </>
+  );
+
   return (
-    <div className={`felt h-full flex flex-col overflow-hidden ${shaking ? 'shake' : ''}`}>
+    <div className={`felt tbl h-full flex flex-col overflow-hidden ${wide ? 'tbl-wide' : ''} ${shaking ? 'shake' : ''}`}>
+      <div className="tbl-scene" style={{ backgroundImage: `url(/ui/city/${city[0]}.webp)` }} aria-hidden />
       <TopBar onChat={() => setChatOpen((o) => !o)} unread={unread} voiceOn={voiceOn} setVoiceOn={setVoiceOn} listening={listening}
         coachOn={coachOn} setCoachOn={setCoachOn} tipsOn={tipsOn} setTipsOn={setTipsOn} />
 
+      {wide ? (
+        <div className="tbl-felt-wrap">
+          <TableShape />
+          <div className="tbl-panel ip">
+            <div className="ip-city">{city[1].toUpperCase()}</div>
+            <div className="ip-row"><span>PRIZE:</span><img className="ip-coins" src="/ui/coins.webp" alt="" /><b>{bet ? fmt(bet * game.players.length) : '—'}</b></div>
+            <div className="ip-row"><span>BET:</span><b>{bet ? fmt(bet) : 'FREE'}</b></div>
+            <div className="ip-end">PLAYERS<b>{game.players.length}</b></div>
+          </div>
+          <div className="tbl-panel sp">
+            <div className="sp-title">PLAY</div>
+            <motion.div key={game.direction} className="sp-dir" initial={{ rotate: game.direction === 1 ? -180 : 180 }} animate={{ rotate: 0 }}
+              transition={{ type: 'spring', stiffness: 120, damping: 14 }} title={game.direction === 1 ? 'Play goes clockwise' : 'Play goes counter-clockwise'}>
+              {game.direction === 1 ? '↻' : '↺'}
+            </motion.div>
+            <div className="sp-color"><i style={{ background: COLOR_HEX[game.currentColor] }} />{game.currentColor?.toUpperCase()}</div>
+            <div className="sp-rules">{[['stacking', 'STACKING'], ['sevenZero', '7-0'], ['jumpIn', 'JUMP-IN'], ['forcePlay', 'FORCE PLAY']].filter(([k]) => game.rules?.[k]).map(([k, l]) => <span key={k}>{l}</span>)}</div>
+          </div>
+          {others.map(({ player, seat }, i) => (
+            <div key={player.id} className={`tbl-seat pos-${SLOTS[Math.min(others.length, 5)][i] ?? 'top'}`}>
+              <Opponent big seat={seat} player={player} isTurn={game.turnPlayerId === player.id}
+                vulnerable={game.unoVulnerable === player.id && !spectator && game.phase === 'playing'}
+                onCatch={() => actions.catchUno(player.id)} revealHand={spectator}
+                timerPct={game.turnPlayerId === player.id ? timerPct : null} />
+            </div>
+          ))}
+          <div className="tbl-center">{centerBlock}</div>
+        </div>
+      ) : (
+        <>
       {/* Opponents */}
       <div className="relative z-10 flex justify-center gap-2 sm:gap-6 px-2 pt-1 flex-wrap">
         {others.map(({ player, seat }) => (
@@ -386,18 +447,16 @@ export function Table() {
 
       {/* Center */}
       <div className="flex-1 flex flex-col items-center justify-center min-h-[220px]">
-        <CenterPiles game={game} canDraw={canDraw} onDraw={actions.draw} lastPlayFrom={lastPlayFrom} />
-        <motion.div key={status} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
-          className={`relative z-10 mt-9 px-4 py-1.5 rounded-full text-sm sm:text-base font-bold ${myTurn ? 'bg-gold text-felt-900 shadow-lg' : 'bg-black/30 text-white/85'}`}>
-          {status}{myTurn && secsLeft != null && room.settings.turnSeconds ? <span className={`ml-2 inline-grid place-items-center min-w-7 h-6 px-1.5 rounded-full text-xs ${secsLeft <= 5 ? 'bg-uno-red text-white' : 'bg-black/20'}`}>{secsLeft}</span> : null}
-        </motion.div>
+        {centerBlock}
       </div>
+        </>
+      )}
 
       {/* My area */}
       {!spectator ? (
-        <div className="relative pb-[max(8px,env(safe-area-inset-bottom))]">
+        <div className="relative z-20 pb-[max(8px,env(safe-area-inset-bottom))]">
           {/* Coach / tips: beside the table on wide screens, above the hand on phones */}
-          <div className="px-3 mb-2 md:mb-0 md:fixed md:left-4 md:top-1/2 md:-translate-y-1/2 md:w-72 md:px-0 z-30">
+          <div className={wide ? 'tbl-coach' : 'px-3 mb-2 md:mb-0 md:fixed md:left-4 md:top-1/2 md:-translate-y-1/2 md:w-72 md:px-0 z-30'}>
             {hint?.tip ? <Coach tip={hint.tip} onClose={() => setHint(null)} /> : <TipBubble tip={tip} onClose={dismissTip} />}
           </div>
           <div className="flex items-center justify-center gap-2 px-3 min-h-[40px]">
@@ -421,12 +480,19 @@ export function Table() {
             )}
           </div>
           <div className="relative">
+            {wide ? (
+              <div className="me-seat">
+                <div className={`seat-ring rounded-full grid place-items-center ${myTurn ? 'ring-4 ring-gold animate-pulse' : ''}`}><Avatar k={seatsById[myId]?.avatar} size={84} /></div>
+                <div className={`seat-name-me ${myTurn ? 'turn' : ''}`}>{(seatsById[myId]?.name || 'You').replace(' 🤖', '')} · {myCount}</div>
+              </div>
+            ) : (
             <div className="absolute left-3 top-5 z-10 hidden md:flex items-center gap-2">
               <div className={`relative w-11 h-11 rounded-full grid place-items-center text-2xl ${myTurn ? 'bg-gold/30 ring-4 ring-gold' : 'bg-white/10'}`}>
                 <Avatar k={seatsById[myId]?.avatar} size={44} />
               </div>
               <span className="chip bg-black/40">{myCount}</span>
             </div>
+            )}
             <Hand hand={game.hand} playable={game.playable} myTurn={myTurn} hintCardId={hint?.cardId} onPlay={handlePlay} disabled={game.phase !== 'playing'} />
           </div>
 

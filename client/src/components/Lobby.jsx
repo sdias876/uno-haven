@@ -6,8 +6,7 @@ import { ChatPanel } from './Social.jsx';
 import { P, fmt } from '../shell/wallet.js';
 
 const BET_CHOICES = [0, 100, 500, 1000, 2500, 5000, 10000];
-const CITIES = [['newyork', 'New York'], ['monaco', 'Monaco'], ['seattle', 'Seattle'], ['chicago', 'Chicago'], ['miami', 'Miami'], ['lasvegas', 'Las Vegas'], ['london', 'London']];
-const cityFor = (code) => { let h = 0; for (const ch of String(code)) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return CITIES[h % CITIES.length]; };
+import { cityFor } from '../lib/city.js';
 
 const RULES = [
   { key: 'stacking', icon: '🥞', title: 'Stacking', desc: '+2 on +2, +4 on +4 — the unlucky one draws the total.' },
