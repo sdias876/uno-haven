@@ -553,3 +553,29 @@ h1.font-display, h2.font-display { font-family: var(--font-bebas); letter-spacin
   .lb-menu, .lb-menu.flip { top: calc(100% + 6px); left: 50%; right: auto; translate: -50% 0; zoom: 1.6; }
 }
 @media (max-width: 900px) { .lb-menu { left: 0; translate: none; } .lb-menu.flip { left: auto; right: 0; } }
+
+/* ================= Wide table v2: fills the window like Spade Haven ================= */
+.tbl-wide { position: relative; }
+.tbl-wide .tbl-felt-wrap { position: absolute; top: 74px; left: 104px; right: 104px; margin: 0; flex: none; min-height: 0; }
+.tbl-wide .tbl-center { inset: max(15%, 58px) 26% calc(var(--hb) + 34px); }
+.tbl-wide .tbl-panel { zoom: var(--pz); top: 50%; }
+.tbl-wide .tbl-panel.ip { left: 9%; } .tbl-wide .tbl-panel.sp { right: 9%; }
+.tbl-wide .tbl-seat { zoom: var(--sz); }
+.tbl-wide .tbl-seat.pos-top { top: 0; left: 50%; transform: translate(-50%, -52%); }
+.tbl-wide .tbl-seat.pos-tl { top: 0; left: 27%; transform: translate(-50%, -52%); }
+.tbl-wide .tbl-seat.pos-tr { top: 0; left: 73%; transform: translate(-50%, -52%); }
+.tbl-wide .tbl-seat.pos-left { left: 0; top: 46%; transform: translate(-58%, -50%); }
+.tbl-wide .tbl-seat.pos-right { right: 0; left: auto; top: 46%; transform: translate(58%, -50%); }
+/* top seats: name and card count beside the avatar so they never cover the piles */
+.tbl-wide .tbl-seat:is(.pos-top, .pos-tl, .pos-tr) .seat-name { position: absolute; left: calc(100% - 10px); top: 14px; z-index: 1; }
+.tbl-wide .tbl-seat:is(.pos-top, .pos-tl, .pos-tr) .seat-count { position: absolute; left: calc(100% - 4px); top: 50px; }
+.tbl-wide .tbl-seat:is(.pos-top, .pos-tl, .pos-tr) > div { gap: 0; }
+/* your seat on the bottom rail, left of your cards; Hint / Pass on the right */
+.tbl-wide .tbl-seat.pos-me { left: 12%; right: auto; top: auto; bottom: 0; transform: translate(-50%, 46%); }
+.tbl-wide .tbl-seat.pos-me .seat-ring { width: 100px; height: 100px; }
+.tbl-wide .tbl-seat.pos-me .seat-ring img { width: 88px !important; height: 88px !important; }
+.tbl-wide .tbl-seat.pos-me .seat-name-me { font-size: 16px; padding: 4px 16px; }
+.tbl-wide .tbl-actions { left: auto; right: 12%; bottom: 0; transform: translate(50%, 50%); }
+.tbl-hand-wide { position: absolute; left: 0; right: 0; bottom: 0; z-index: 20; padding: 0 clamp(210px, 21vw, 400px) env(safe-area-inset-bottom); pointer-events: none; }
+.tbl-hand-wide > * { pointer-events: auto; }
+.tbl-spec-wide { position: absolute; left: 0; right: 0; bottom: 0; z-index: 20; }

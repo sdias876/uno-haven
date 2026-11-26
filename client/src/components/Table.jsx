@@ -7,7 +7,7 @@ import { sound, play } from '../lib/sound.js';
 import { useVoiceUno, voiceSupported } from '../lib/useVoiceUno.js';
 import { Card, COLOR_HEX, cardName } from './Card.jsx';
 import { Hand } from './Hand.jsx';
-import { useViewport, pileCardWidth } from '../lib/useViewport.js';
+import { useViewport, pileCardWidth, handCardWidth } from '../lib/useViewport.js';
 import { ColorPicker, SwapPicker } from './Pickers.jsx';
 import { ChatPanel, EmoteBar, EmoteLayer } from './Social.jsx';
 import { Recap } from './Recap.jsx';
@@ -389,6 +389,12 @@ export function Table() {
 
   const city = cityOf(room);
   const bet = Number(room.settings?.bet) || 0;
+  // Wide layout, like Spade Haven: the table fills the window and your cards overlap its bottom rail.
+  const cardH = Math.round(handCardWidth(vp) * 1.46);
+  const feltBottom = spectator ? 120 : Math.round(cardH + 66 - cardH * 0.42);
+  const feltH = vp.h - 74 - feltBottom;
+  const clampN = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+  const wrapStyle = { bottom: feltBottom, '--hb': `${Math.round(spectator ? 40 : cardH * 0.42)}px`, '--sz': clampN(feltH / 500, 0.7, 1).toFixed(3), '--pz': clampN(feltH / 470, 0.6, 1).toFixed(3) };
   const actionRow = (
     <>
             {coachOn && myTurn && (
@@ -427,7 +433,7 @@ export function Table() {
         coachOn={coachOn} setCoachOn={setCoachOn} tipsOn={tipsOn} setTipsOn={setTipsOn} />
 
       {wide ? (
-        <div className="tbl-felt-wrap">
+        <div className="tbl-felt-wrap" style={wrapStyle}>
           <TableShape />
           <div className="tbl-panel ip">
             <div className="ip-city">{city[1].toUpperCase()}</div>
@@ -482,7 +488,7 @@ export function Table() {
 
       {/* My area */}
       {!spectator ? (
-        <div className="relative z-20 pb-[max(8px,env(safe-area-inset-bottom))]">
+        <div className={wide ? 'tbl-hand-wide' : 'relative z-20 pb-[max(8px,env(safe-area-inset-bottom))]'}>
           {/* Coach / tips: beside the table on wide screens, above the hand on phones */}
           <div className={wide ? 'tbl-coach' : 'px-3 mb-2 md:mb-0 md:fixed md:left-4 md:top-1/2 md:-translate-y-1/2 md:w-72 md:px-0 z-30'}>
             {hint?.tip ? <Coach tip={hint.tip} onClose={() => setHint(null)} /> : <TipBubble tip={tip} onClose={dismissTip} />}
@@ -539,7 +545,7 @@ export function Table() {
           </AnimatePresence>
         </div>
       ) : (
-        <div className="pb-4 flex flex-col items-center gap-2">
+        <div className={`pb-4 flex flex-col items-center gap-2 ${wide ? 'tbl-spec-wide' : ''}`}>
           <div className="glass rounded-2xl px-4 py-2 text-sm">👀 You're spectating{room.settings.spectatorsSeeHands ? ' — all hands are revealed' : ''}. Send reactions below!</div>
           <EmoteBar />
         </div>
