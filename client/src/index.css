@@ -579,3 +579,11 @@ h1.font-display, h2.font-display { font-family: var(--font-bebas); letter-spacin
 .tbl-hand-wide { position: absolute; left: 0; right: 0; bottom: 0; z-index: 20; padding: 0 clamp(240px, 23vw, 400px) env(safe-area-inset-bottom); pointer-events: none; }
 .tbl-hand-wide > * { pointer-events: auto; }
 .tbl-spec-wide { position: absolute; left: 0; right: 0; bottom: 0; z-index: 20; }
+/* your seat in the middle of your cards (wide table) */
+.tbl-me-mid { position: absolute; left: 50%; z-index: 30; transform: translate(-50%, 62%); display: flex; flex-direction: column; align-items: center; gap: 4px; pointer-events: none; }
+.tbl-me-mid > * { zoom: var(--sz); }
+.tbl-me-mid .seat-ring { width: 104px; height: 104px; }
+.tbl-me-mid .seat-ring img { width: 92px !important; height: 92px !important; }
+.tbl-me-mid .seat-ring.my-turn { box-shadow: 0 0 0 3px #3a2410, 0 0 0 7px #ffd75e, 0 0 24px #ffd75e !important; animation: pulse-ring 1.2s infinite; }
+.tbl-me-mid .seat-name-me { font-size: 16px; padding: 4px 16px; }
+.tbl-hand-wide { padding-left: clamp(230px, 20vw, 380px) !important; padding-right: clamp(230px, 20vw, 380px) !important; }

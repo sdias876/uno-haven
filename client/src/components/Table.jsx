@@ -394,6 +394,7 @@ export function Table() {
   const feltBottom = spectator ? 120 : Math.round(cardH + 66 - cardH * 0.42);
   const feltH = vp.h - 74 - feltBottom;
   const clampN = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+  const seatZoom = Number(clampN(feltH / 500, 0.7, 1).toFixed(3));
   const wrapStyle = { bottom: feltBottom, '--hb': `${Math.round(spectator ? 40 : cardH * 0.42)}px`, '--sz': clampN(feltH / 500, 0.7, 1).toFixed(3), '--pz': clampN(feltH / 470, 0.6, 1).toFixed(3) };
   const actionRow = (
     <>
@@ -459,12 +460,6 @@ export function Table() {
             </div>
           ))}
           <div className="tbl-center">{centerBlock}</div>
-          {!spectator && (
-            <div className="tbl-seat pos-me">
-              <div className={`seat-ring rounded-full grid place-items-center ${myTurn ? 'my-turn' : ''}`}><Avatar k={seatsById[myId]?.avatar} size={84} /></div>
-              <div className={`seat-name-me ${myTurn ? 'turn' : ''}`}>{(seatsById[myId]?.name || 'You').replace(' 🤖', '')} · {myCount}</div>
-            </div>
-          )}
           {!spectator && <div className="tbl-actions">{actionRow}</div>}
         </div>
       ) : (
@@ -524,7 +519,15 @@ export function Table() {
               <span className="chip bg-black/40">{myCount}</span>
             </div>
             )}
-            <Hand hand={game.hand} playable={game.playable} myTurn={myTurn} hintCardId={hint?.cardId} onPlay={handlePlay} disabled={game.phase !== 'playing'} />
+            <Hand hand={game.hand} playable={game.playable} myTurn={myTurn} hintCardId={hint?.cardId} onPlay={handlePlay} disabled={game.phase !== 'playing'}
+              centerGap={wide ? Math.round(150 * seatZoom) : 0} />
+            {wide && (
+              // your seat floats in the middle of your cards, right where you sit at the table
+              <div className="tbl-me-mid" style={{ bottom: feltBottom, '--sz': seatZoom }}>
+                <div className={`seat-ring rounded-full grid place-items-center ${myTurn ? 'my-turn' : ''}`}><Avatar k={seatsById[myId]?.avatar} size={88} /></div>
+                <div className={`seat-name-me ${myTurn ? 'turn' : ''}`}>{(seatsById[myId]?.name || 'You').replace(' 🤖', '')} · {myCount}</div>
+              </div>
+            )}
           </div>
 
           {/* Ek! panic button */}

@@ -21,7 +21,7 @@ function useWidth(ref) {
 /**
  * Fanned hand. Playable cards glow and lift; unplayable ones dim on your turn.
  */
-export function Hand({ hand, playable, myTurn, hintCardId, onPlay, disabled }) {
+export function Hand({ hand, playable, myTurn, hintCardId, onPlay, disabled, centerGap = 0 }) {
   const ref = useRef(null);
   const width = useWidth(ref);
   const vp = useViewport();
@@ -30,8 +30,15 @@ export function Hand({ hand, playable, myTurn, hintCardId, onPlay, disabled }) {
   const size = cardW;
   const cards = sortHand(hand);
   const n = cards.length;
-  const spacing = n <= 1 ? 0 : Math.min(cardW * 0.7, (width - cardW * (width < 500 ? 1.95 : 1.6)) / (n - 1));
-  const total = spacing * (n - 1);
+  // centerGap: room left open in the middle of the fan for your seat (wide table)
+  const gap = n > 1 ? centerGap : 0;
+  const spacing = n <= 1 ? 0 : gap
+    ? Math.min(cardW * 0.7, (width - gap - cardW * 2.6) / Math.max(1, n - 2))
+    : Math.min(cardW * 0.7, (width - cardW * (width < 500 ? 1.95 : 1.6)) / (n - 1));
+  // the right half moves over so the clear space between the halves is exactly `gap`
+  const shift = gap ? gap + cardW - spacing : 0;
+  const total = spacing * (n - 1) + shift;
+  const half = Math.ceil(n / 2);
   const maxAngle = Math.min(28, n * 2.6);
   const playableSet = new Set(playable);
   const [hover, setHover] = useState(null);
@@ -42,7 +49,10 @@ export function Hand({ hand, playable, myTurn, hintCardId, onPlay, disabled }) {
         {cards.map((card, i) => {
           const t = n <= 1 ? 0 : i / (n - 1) - 0.5; // -0.5..0.5
           const angle = t * maxAngle;
-          const x = width / 2 - cardW / 2 - total / 2 + i * spacing;
+          // with a seat gap, both halves grow outward from the middle so the gap stays centered under your seat
+          const x = n === 1 && centerGap ? width / 2 - cardW - centerGap / 2
+            : gap ? (i < half ? width / 2 - gap / 2 - cardW - (half - 1 - i) * spacing : width / 2 + gap / 2 + (i - half) * spacing)
+            : width / 2 - cardW / 2 - total / 2 + i * spacing;
           const arcY = Math.abs(t) ** 2 * 40;
           const canPlay = playableSet.has(card.id) && !disabled;
           const dim = myTurn && !canPlay;
