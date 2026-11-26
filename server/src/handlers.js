@@ -20,26 +20,26 @@ io.on('connection', (socket) => {
   const room = () => rooms.get(socket.data.roomCode);
   const leaveCurrent = () => { const r = room(); if (r) r.leave(socket); socket.data.roomCode = null; };
 
-  on(socket, 'room:create', ({ name, avatar, skill }) => {
+  on(socket, 'room:create', ({ name, avatar, skill, pid }) => {
     leaveCurrent();
     const r = rooms.create({ skill });
-    const seat = r.addHuman(socket, { name, avatar });
+    const seat = r.addHuman(socket, { name, avatar, pid });
     r.broadcast();
     return { ok: true, code: r.code, token: seat.token, playerId: seat.id, ...r.snapshotFor(socket) };
   });
 
   // Online lobby: sit at a public table (matched by size and bet) or list the live ones.
-  on(socket, 'room:quick', ({ name, avatar, size, bet }) => {
+  on(socket, 'room:quick', ({ name, avatar, size, bet, pid }) => {
     leaveCurrent();
     const r = rooms.quick({ size: Number(size), bet: Number(bet) });
-    const seat = r.addHuman(socket, { name, avatar });
+    const seat = r.addHuman(socket, { name, avatar, pid });
     r.checkFull();
     r.broadcast();
     return { ok: true, code: r.code, role: 'player', token: seat.token, playerId: seat.id, ...r.snapshotFor(socket) };
   });
   on(socket, 'rooms:list', () => ({ ok: true, tables: rooms.list(), online: io.engine?.clientsCount ?? 1 }));
 
-  on(socket, 'room:join', ({ code, name, avatar, token, watch }) => {
+  on(socket, 'room:join', ({ code, name, avatar, token, watch, pid }) => {
     const r = rooms.get(code);
     if (!r) return { error: 'Room not found — check the code' };
     if (socket.data.roomCode && socket.data.roomCode !== r.code) leaveCurrent();
@@ -48,7 +48,7 @@ io.on('connection', (socket) => {
       if (seat) { r.broadcast(); return { ok: true, code: r.code, role: 'player', token: seat.token, playerId: seat.id, ...r.snapshotFor(socket) }; }
     }
     if (r.phase !== 'playing' && r.seats.length < r.size && !watch) {
-      const seat = r.addHuman(socket, { name, avatar });
+      const seat = r.addHuman(socket, { name, avatar, pid });
       r.checkFull();
       r.broadcast();
       return { ok: true, code: r.code, role: 'player', token: seat.token, playerId: seat.id, ...r.snapshotFor(socket) };

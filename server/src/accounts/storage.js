@@ -50,3 +50,5 @@ async function check() {
 check();
 export const storage = { getRecord, putRecord, get enabled() { return kind !== 'none' && healthy; }, kind };
 export { getRecord, putRecord };
+/** Raw Upstash command (leaderboard). */
+export const redisCmd = (cmd) => redis(cmd);

@@ -179,12 +179,27 @@ export const SHELL_HTML = `
   </div>
 </div>
 <div class="overlay" id="statsOv" hidden>
-  <div class="modal pick stats">
-    <img class="stats-trophy" src="/ui/trophy.webp" alt="">
-    <h2 id="statsName">Your Stats</h2>
-    <div class="stats-grid" id="statsGrid"></div>
-    <p class="muted small">Coins and stats are saved on this device.</p>
-    <div class="modal-foot"><button class="pill green" data-close>Close</button></div>
+  <div class="rk" role="dialog" aria-modal="true" aria-labelledby="rkTitle">
+    <button class="rk-x" data-close aria-label="Close">✕</button>
+    <h2 class="rk-title" id="rkTitle"><img src="/ui/trophy.webp" alt=""><span id="rkHead">LEADERBOARD — CURRENT WEEK</span><img src="/ui/trophy.webp" alt=""></h2>
+    <div class="rk-body">
+      <div class="rk-main">
+        <div class="rk-tabs" role="tablist">
+          <button role="tab" data-tab="week" class="on">WEEKLY RANKINGS</button>
+          <button role="tab" data-tab="all">ALL-TIME</button>
+          <button role="tab" data-tab="me">MY STATS</button>
+        </div>
+        <div class="rk-cols" id="rkCols"><span>RANK</span><span>PLAYER</span><span>COINS WON</span></div>
+        <div class="rk-pane" id="rkPane"></div>
+        <div class="rk-you" id="rkYou"></div>
+      </div>
+      <aside class="rk-side">
+        <div class="rk-rewards"><div class="rk-rw-title">Rank Rewards</div><div id="rkRewards"></div></div>
+        <div class="rk-ends">ENDS IN: <b id="rkEnds">–</b></div>
+        <button class="rk-last" id="rkLast">LAST WEEK RESULTS</button>
+      </aside>
+    </div>
+    <p class="rk-note" id="rkNote">Only games at online tables with a bet count — games against the computer don't. Win and you add what you took from the table; lose and your stake comes off. Top 100 each week get a reward.</p>
   </div>
 </div>
 <div class="overlay" id="avatarOv" hidden>

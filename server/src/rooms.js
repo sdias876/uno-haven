@@ -170,9 +170,9 @@ class Room {
   seatById(pid) { return this.seats.find((s) => s.id === pid); }
   humans() { return this.seats.filter((s) => !s.isBot); }
 
-  addHuman(socket, { name, avatar }) {
+  addHuman(socket, { name, avatar, pid }) {
     const seat = {
-      id: id('p'), token: token(), name: clean(name) || 'Player', avatar: okAvatar(avatar, this.seats.length),
+      id: id('p'), token: token(), pid: /^[a-zA-Z0-9_-]{8,48}$/.test(String(pid || '')) ? String(pid) : null, name: clean(name) || 'Player', avatar: okAvatar(avatar, this.seats.length),
       isBot: false, botLevel: null, socketId: socket.id, connected: true, autopilot: false, afkStrikes: 0,
     };
     this.seats.push(seat);
@@ -420,6 +420,11 @@ class Room {
       const w = this.seatById(this.game.winnerId);
       this.adaptBots(w);
       this.system(`🏆 ${w?.name ?? 'Someone'} wins with ${this.recap.score} points!`);
+      // Leaderboard: public tables, or private tables with at least two real players (not practice vs bots).
+      const humans = this.seats.filter((s) => !s.isBot).length;
+      if (this.settings.bet > 0 && (this.isPublic || humans >= 2)) {
+        this.manager.onResult?.({ bet: this.settings.bet, players: this.seats.map((s) => ({ pid: s.pid, name: s.name, avatar: s.avatar, isBot: s.isBot, won: s.id === this.game.winnerId })) });
+      }
       this.broadcast();
       return;
     }

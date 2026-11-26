@@ -12,6 +12,8 @@ function load() {
     p = { coins: START_COINS, xp: 0, played: 0, won: 0, bestWin: 0, bestSpin: 0, spins: 0, lastSpin: 0, lastFree: 0, lastDaily: '', streak: 0, games: {} };
   }
   p.games = p.games || {};
+  // lasting player id for the leaderboard (saved with the account, so it follows you to other devices)
+  if (!/^[a-zA-Z0-9_-]{8,48}$/.test(p.pid || '')) p.pid = 'ek' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
   return p;
 }
 export const P = load();
@@ -27,7 +29,9 @@ export function saveP() {
 /** Take progress saved to the player's account onto this device (keeps its timestamp). */
 export function adoptP(pr, at) {
   const keep = P.games;
+  const pid = P.pid;
   Object.assign(P, pr); delete P.avatar; P.games = keep; P.updatedAt = at || Date.now();
+  if (!P.pid) P.pid = pid;
   try { localStorage.setItem(KEY, JSON.stringify(P)); } catch { /* ignore */ }
   subs.forEach((f) => f(P, true));
 }

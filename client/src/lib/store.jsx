@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { net, send, session, prefs } from './socket.js';
 import { play, say } from './sound.js';
-import { settleBets } from '../shell/wallet.js';
+import { settleBets, P } from '../shell/wallet.js';
 
 const Ctx = createContext(null);
 export const useGame = () => useContext(Ctx);
@@ -53,7 +53,7 @@ export function GameProvider({ children }) {
       if (net.mode !== 'online') return;
       const s = session.get();
       if (s?.code) {
-        const res = await send('room:join', { code: s.code, token: s.token, name: s.name, avatar: s.avatar });
+        const res = await send('room:join', { code: s.code, token: s.token, name: s.name, avatar: s.avatar, pid: P.pid });
         if (res.error) { session.clear(); setRoom(null); setGame(null); }
         else {
           session.set({ ...s, token: res.token ?? s.token });
@@ -138,20 +138,20 @@ export function GameProvider({ children }) {
   const actions = useMemo(() => ({
     async createRoom() {
       if (net.mode !== 'online') { net.useOnline(); setMode('online'); setConnected(net.connected); }
-      const res = await act('room:create', profile);
+      const res = await act('room:create', { ...profile, pid: P.pid });
       if (!res.error) { session.set({ code: res.code, token: res.token, ...profile }); setChat(res.chat ?? []); }
       return res;
     },
     async joinRoom(code) {
       if (net.mode !== 'online') { net.useOnline(); setMode('online'); setConnected(net.connected); }
-      const res = await act('room:join', { code: code.trim().toUpperCase(), ...profile });
+      const res = await act('room:join', { code: code.trim().toUpperCase(), ...profile, pid: P.pid });
       if (!res.error) { session.set({ code: res.code, token: res.token ?? null, ...profile }); setChat(res.chat ?? []); }
       return res;
     },
     /** Online lobby: sit at a public table with this many seats and this bet. */
     async quickTable(size, bet) {
       if (net.mode !== 'online') { net.useOnline(); setMode('online'); setConnected(net.connected); }
-      const res = await act('room:quick', { ...profile, size, bet });
+      const res = await act('room:quick', { ...profile, pid: P.pid, size, bet });
       if (!res.error) { session.set({ code: res.code, token: res.token, ...profile }); setChat(res.chat ?? []); }
       return res;
     },
@@ -167,7 +167,7 @@ export function GameProvider({ children }) {
     async quickPlay(levels = ['smart', 'smart', 'smart'], rules, { bet = 0 } = {}) {
       await net.useLocal();
       setMode('local'); setConnected(true);
-      const res = await act('room:create', { ...profile, skill: prefs.get('skill', 0.45) });
+      const res = await act('room:create', { ...profile, pid: P.pid, skill: prefs.get('skill', 0.45) });
       if (res.error) return res;
       setChat(res.chat ?? []);
       for (const level of levels) await send('lobby:addBot', { level });

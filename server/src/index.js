@@ -7,6 +7,7 @@ import { Server } from 'socket.io';
 import { RoomManager } from './rooms.js';
 import { attachHandlers } from './handlers.js';
 import * as accounts from './accounts/accounts.js';
+import * as leaderboard from './leaderboard.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT) || 3001;
@@ -20,6 +21,7 @@ const io = new Server(server, {
   pingTimeout: 8_000,
 });
 const rooms = new RoomManager(io);
+rooms.onResult = (r) => { leaderboard.recordResult(r); };
 
 app.get('/healthz', (_req, res) => res.json({ ok: true, rooms: rooms.rooms.size, uptime: process.uptime() }));
 
@@ -44,6 +46,14 @@ if (CANONICAL) {
 const AUTH_ROUTES = { signup: accounts.signUp, signin: accounts.signIn, load: accounts.load, save: accounts.save,
   password: accounts.changePassword, forgot: accounts.forgot, reset: accounts.reset };
 const authHits = new Map(); // ip -> {n, t}: simple brake on password guessing
+app.get('/api/lb', async (req, res) => {
+  try { res.set('Cache-Control', 'no-store').json(await leaderboard.view(String(req.query.pid || ''))); }
+  catch (e) { console.log('leaderboard:', e.message); res.status(500).json({ error: 'Leaderboard unavailable' }); }
+});
+app.post('/api/lb/claim', express.json({ limit: '4kb' }), async (req, res) => {
+  try { res.json(await leaderboard.claim(String(req.body?.pid || ''))); }
+  catch (e) { res.status(500).json({ error: 'Try again in a moment' }); }
+});
 app.get('/api/auth/config', (_req, res) => res.set('Cache-Control', 'no-store').json(accounts.config()));
 app.post('/api/auth/:route', express.json({ limit: '64kb' }), async (req, res) => {
   res.set({ 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' });

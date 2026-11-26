@@ -267,15 +267,70 @@ export function mountShell(root, api) {
   };
   $('mGifts').onclick = openGifts; $('mPlus').onclick = openGifts;
 
-  // ---- stats ----
-  $('mStats').onclick = $('mLevel').onclick = () => {
-    const nm = $('nameIn').value.trim();
-    $('statsName').textContent = nm ? `${nm}'s Stats` : 'Your Stats';
-    const rate = P.played ? `${Math.round(100 * P.won / P.played)}%` : '-';
-    $('statsGrid').innerHTML = [[levelOf(P.xp), 'Level'], [fmt(P.coins), 'Coins'], [P.played, 'Games played'], [P.won, 'Games won'], [rate, 'Win rate'], [fmt(P.bestWin), 'Biggest win'], [P.spins, 'Wheel spins'], [fmt(P.bestSpin), 'Best spin']]
-      .map(([v, k]) => `<div class="stat"><b>${v}</b><span>${k}</span></div>`).join('');
-    $('statsOv').hidden = false;
-  };
+  // ---- stats & leaderboard (like Spade Haven) ----
+  const RANK_LABEL = (upTo, i, arr) => (upTo <= 3 ? ['1ST', '2ND', '3RD'][upTo - 1] : `${(arr[i - 1]?.[0] ?? 0) + 1}–${upTo}`);
+  const MEDAL = ['', '🥇', '🥈', '🥉'];
+  const esc = (t) => String(t ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  let lb = null, rkTab = 'week', rkTimer = 0;
+  const row = (e) => `<div class="rk-row ${e.rank <= 3 ? 'top' + e.rank : ''} ${e.you ? 'you' : ''}">
+      <span class="rk-rank">${e.rank <= 3 ? `<i class="rk-medal">${MEDAL[e.rank]}</i>` : `<i class="rk-num">${e.rank}</i>`}</span>
+      <img class="rk-av" src="${avatarUrl(e.avatar)}" alt="">
+      <span class="rk-name">${esc(e.name)}${e.you ? ' (YOU)' : ''}</span>
+      <span class="rk-score"><img src="/ui/coins.webp" alt="">${fmt(e.score)}</span></div>`;
+  function myStats() {
+    const rate = P.played ? `${Math.round(100 * P.won / P.played)}%` : '–';
+    const L = levelOf(P.xp), pct = Math.round(100 * (P.xp - lvBase(L)) / Math.max(1, lvBase(L + 1) - lvBase(L)));
+    const nm = $('nameIn').value.trim() || 'You';
+    return `<div class="rk-me"><div class="rk-me-head"><img class="rk-av big" src="${avatarUrl(P.avatar || prefs.get('profile', {}).avatar)}" alt=""><div><b>${esc(nm)}</b><span>LEVEL ${L}</span><i class="rk-lv"><i style="width:${pct}%"></i></i></div></div>
+      <div class="rk-tiles">${[[fmt(P.coins), 'Coins', '🪙'], [P.played, 'Games played', '🃏'], [P.won, 'Games won', '🏆'], [rate, 'Win rate', '📈'], [fmt(P.bestWin), 'Biggest win', '💰'], [P.spins, 'Wheel spins', '🎡'], [fmt(P.bestSpin), 'Best spin', '✨'], [L, 'Level', '⭐']]
+        .map(([v, k, ic]) => `<div class="rk-tile"><i>${ic}</i><b>${v}</b><span>${k}</span></div>`).join('')}</div></div>`;
+  }
+  function rkRender() {
+    document.querySelectorAll('#statsOv .rk-tabs button').forEach((b) => { b.classList.toggle('on', b.dataset.tab === rkTab); b.setAttribute('aria-selected', b.dataset.tab === rkTab); });
+    $('rkHead').textContent = { week: 'LEADERBOARD — CURRENT WEEK', all: 'LEADERBOARD — ALL-TIME', last: 'LAST WEEK RESULTS', me: 'MY STATS' }[rkTab];
+    $('rkCols').hidden = rkTab === 'me';
+    $('rkLast').classList.toggle('on', rkTab === 'last');
+    if (rkTab === 'me') { $('rkPane').innerHTML = myStats(); $('rkYou').innerHTML = ''; return; }
+    if (!lb) { $('rkPane').innerHTML = `<div class="rk-empty">${lb === false ? 'Rankings need an internet connection. Your own stats are under <b>MY STATS</b>.' : 'Loading rankings…'}</div>`; $('rkYou').innerHTML = ''; return; }
+    const b = lb[rkTab];
+    $('rkPane').innerHTML = b.top.length ? b.top.map(row).join('')
+      : `<div class="rk-empty"><b>No one has won coins ${rkTab === 'last' ? 'last week' : rkTab === 'week' ? 'this week' : 'yet'}.</b>Win a game at an online table with a bet to be first on the board!</div>`;
+    let you = '';
+    if (rkTab === 'last' && b.reward) you = b.claimed ? `You finished #${b.me.rank} — reward collected ✓` : `<span>You finished #${b.me.rank}!</span><button class="rk-claim" id="rkClaim">COLLECT ${fmt(b.reward)} COINS</button>`;
+    else if (b.me?.rank) you = `Your rank: <b>#${b.me.rank}</b> · ${fmt(b.me.score)} won ${rkTab === 'week' ? 'this week' : rkTab === 'last' ? 'last week' : 'in total'}`;
+    else you = b.me ? `Not ranked yet (${fmt(b.me.score)}) — win online games with a bet to climb` : 'Not ranked yet — win online games with a bet to climb';
+    $('rkYou').innerHTML = you;
+    const c = $('rkClaim');
+    if (c) c.onclick = async () => {
+      c.disabled = true;
+      try {
+        const r = await fetch('/api/lb/claim', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ pid: P.pid }) }).then((x) => x.json());
+        if (r.amount) { gainCoins(r.amount, c); sfx.win?.(); toast(`Rank #${r.rank} reward: +${fmt(r.amount)} coins!`); lb.last.claimed = true; rkRender(); }
+        else { toast(r.error || 'Could not collect', true); c.disabled = false; }
+      } catch { toast('No connection — try again', true); c.disabled = false; }
+    };
+  }
+  function rkSide() {
+    const rw = lb?.rewards ?? [[1, 50000], [2, 25000], [3, 10000], [10, 5000], [50, 2500], [100, 1000]];
+    $('rkRewards').innerHTML = rw.map(([upTo, amt], i, arr) => `<div class="rk-rw ${upTo <= 3 ? 'p' + upTo : ''}"><span>${RANK_LABEL(upTo, i, arr)}</span><b><img src="/ui/coins.webp" alt="">${fmt(amt)}</b></div>`).join('');
+    const tick = () => {
+      const end = lb?.endsAt ?? (() => { const d = new Date(); const day = (d.getUTCDay() + 6) % 7; return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() - day) + 7 * 864e5; })();
+      const t = Math.max(0, end - Date.now()), dd = Math.floor(t / 864e5), hh = Math.floor(t / 36e5) % 24, mm = Math.floor(t / 6e4) % 60, ss = Math.floor(t / 1e3) % 60;
+      $('rkEnds').textContent = `${dd}D ${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}:${String(ss).padStart(2, '0')}`;
+      if ($('statsOv').hidden) clearInterval(rkTimer);
+    };
+    clearInterval(rkTimer); tick(); rkTimer = setInterval(tick, 1000);
+  }
+  async function openStats(tab = 'week') {
+    rkTab = tab; $('statsOv').hidden = false; rkSide(); rkRender();
+    try { const r = await fetch(`/api/lb?pid=${encodeURIComponent(P.pid)}`, { cache: 'no-store' }); lb = r.ok ? await r.json() : false; }
+    catch { lb = false; }
+    rkSide(); rkRender();
+  }
+  document.querySelectorAll('#statsOv .rk-tabs button').forEach((b) => { b.onclick = () => { rkTab = b.dataset.tab; rkRender(); }; });
+  $('rkLast').onclick = () => { rkTab = rkTab === 'last' ? 'week' : 'last'; rkRender(); };
+  $('mStats').onclick = () => openStats('week');
+  $('mLevel').onclick = () => openStats('me');
 
   // ---- Mega Bonus wheel ----
   $('mwArt').outerHTML = wheelArt('mw');
