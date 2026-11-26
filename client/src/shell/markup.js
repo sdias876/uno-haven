@@ -138,7 +138,7 @@ export const SHELL_HTML = `
     <span class="lbl">Bots</span>
     <div class="seg" id="soloLevel"><button data-v="smart" class="on">Auto</button><button data-v="casual">Chill</button><button data-v="tactical">Classic</button><button data-v="ruthless">Ruthless</button></div>
     <span class="lbl" style="margin-top:1rem">Players</span>
-    <div class="seg sizes" id="soloSize"><button data-v="1"><img src="/ui/mode-solo.webp" alt="">1 vs 1</button><button data-v="2"><img src="/ui/mode-solo.webp" alt="">3 players</button><button data-v="3" class="on"><img src="/ui/mode-partners.webp" alt="">4 players</button></div>
+    <div class="seg sizes" id="soloSize"><button data-v="1"><img src="/ui/ek-mode-2.webp" alt="">1 vs 1</button><button data-v="2"><img src="/ui/ek-mode-3.webp" alt="">3 players</button><button data-v="3" class="on"><img src="/ui/ek-mode-4.webp" alt="">4 players</button></div>
     <span class="lbl" style="margin-top:1rem">Your bet</span>
     <div class="seg bets" id="soloBet"><button data-v="100">100</button><button data-v="500" class="on">500</button><button data-v="1000">1K</button><button data-v="2500">2.5K</button><button data-v="5000">5K</button><button data-v="10000">10K</button></div>
     <p class="win-line" id="soloWin"></p>

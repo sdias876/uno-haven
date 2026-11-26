@@ -587,3 +587,6 @@ h1.font-display, h2.font-display { font-family: var(--font-bebas); letter-spacin
 .tbl-me-mid .seat-ring.my-turn { box-shadow: 0 0 0 3px #3a2410, 0 0 0 7px #ffd75e, 0 0 24px #ffd75e !important; animation: pulse-ring 1.2s infinite; }
 .tbl-me-mid .seat-name-me { font-size: 16px; padding: 4px 16px; }
 .tbl-hand-wide { padding-left: clamp(230px, 20vw, 380px) !important; padding-right: clamp(230px, 20vw, 380px) !important; }
+.ol-mode-img { width: 46px; height: 40px; }
+.mc2-art { background: radial-gradient(ellipse at 50% 45%, rgba(255,215,110,.28), transparent 62%), linear-gradient(180deg, #3a3fc0, #2b2f98); }
+.mc2-art img { width: 92%; }

@@ -11,9 +11,9 @@ import { play } from '../lib/sound.js';
 import { ChatPanel } from './Social.jsx';
 
 export const ROOM_TYPES = [
-  { size: 2, name: '1 VS 1', sub: 'Just you and one rival', img: 'ol-solo', art: 'mode-solo' },
-  { size: 3, name: '3 PLAYERS', sub: 'A three-way battle', img: 'ol-solo', art: 'mode-solo' },
-  { size: 4, name: '4 PLAYERS', sub: 'The classic full table', img: 'ol-partners', art: 'mode-partners' },
+  { size: 2, name: '1 VS 1', sub: 'Just you and one rival', img: 'ek-mode-2', art: 'ek-mode-2' },
+  { size: 3, name: '3 PLAYERS', sub: 'A three-way battle', img: 'ek-mode-3', art: 'ek-mode-3' },
+  { size: 4, name: '4 PLAYERS', sub: 'The classic full table', img: 'ek-mode-4', art: 'ek-mode-4' },
 ];
 const BET_STEPS = [100, 500, 1000, 2500, 5000, 10000];
 const short = (n) => (n >= 1000 ? `${n / 1000}K` : String(n));
