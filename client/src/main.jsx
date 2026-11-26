@@ -10,6 +10,7 @@ if (/^(uno-haven|ek-haven)\.onrender\.com$/.test(location.hostname)) {
 import '@fontsource-variable/outfit';
 import '@fontsource/bebas-neue/latin-400.css';
 import '@fontsource/lobster/latin-400.css';
+import '@fontsource/baloo-2/devanagari-800.css'; // Hindi numerals in card corners
 import '@fontsource/rubik/latin-400.css';
 import '@fontsource/rubik/latin-500.css';
 import '@fontsource/rubik/latin-700.css';

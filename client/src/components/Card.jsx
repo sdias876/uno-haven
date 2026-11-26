@@ -62,7 +62,11 @@ function Symbol({ value, color }) {
   }
 }
 
-const corner = (v) => ({ skip: '⊘', reverse: '⇄', draw2: '+2', wild: 'W', wild4: '+4' }[v] ?? v);
+// Ek means "one" in Hindi: number cards show Hindi numerals (१ २ ३ …) in the corners, the big number stays in the middle.
+const HINDI = ['०', '१', '२', '३', '४', '५', '६', '७', '८', '९'];
+const isNum = (v) => /^[0-9]$/.test(v);
+const corner = (v) => ({ skip: '⊘', reverse: '⇄', draw2: '+2', wild: 'W', wild4: '+4' }[v] ?? (isNum(v) ? HINDI[+v] : v));
+const HINDI_FONT = { fontFamily: "'Baloo 2', 'Noto Sans Devanagari', 'Nirmala UI', 'Mangal', sans-serif", fontWeight: 800, fontSize: '1.55em', lineHeight: 0.8 };
 const WILD_OVAL = `conic-gradient(from 0deg, ${COLOR_HEX.red} 0 25%, ${COLOR_HEX.blue} 25% 50%, ${COLOR_HEX.yellow} 50% 75%, ${COLOR_HEX.green} 75% 100%)`;
 
 /**
@@ -85,6 +89,7 @@ export function Card({ card, size = 'md', faceDown = false, chosenColor, classNa
   }
   const isWild = card.color === 'wild';
   const label = corner(card.value);
+  const cs = isNum(card.value) ? HINDI_FONT : null;
   return (
     <motion.div
       {...motionProps}
@@ -97,8 +102,8 @@ export function Card({ card, size = 'md', faceDown = false, chosenColor, classNa
       <div className="absolute inset-0 flex items-center justify-center">
         <Symbol value={card.value} color={card.color} />
       </div>
-      <span className="absolute top-[5%] left-[9%] text-[1.25em] leading-none text-white" style={{ WebkitTextStroke: `0.05em ${INK}`, paintOrder: 'stroke fill' }}>{label}</span>
-      <span className="absolute bottom-[5%] right-[9%] text-[1.25em] leading-none text-white rotate-180" style={{ WebkitTextStroke: `0.05em ${INK}`, paintOrder: 'stroke fill' }}>{label}</span>
+      <span className="absolute top-[5%] left-[9%] text-[1.25em] leading-none text-white" style={{ WebkitTextStroke: `0.05em ${INK}`, paintOrder: 'stroke fill', ...cs }}>{label}</span>
+      <span className="absolute bottom-[5%] right-[9%] text-[1.25em] leading-none text-white rotate-180" style={{ WebkitTextStroke: `0.05em ${INK}`, paintOrder: 'stroke fill', ...cs }}>{label}</span>
       {isWild && chosenColor && (
         <span className="absolute bottom-[9%] left-1/2 -translate-x-1/2 w-[1.7em] h-[1.7em] rounded-full border-[0.2em] border-white shadow" style={{ background: COLOR_HEX[chosenColor] }} />
       )}
