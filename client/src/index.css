@@ -734,3 +734,109 @@ h1.font-display, h2.font-display { font-family: var(--font-bebas); letter-spacin
   .welcome .wel-ico { width: 56px; }
   .welcome .wel-guest { font-size: 26px; }
 }
+
+/* ================= Device fit fixes ================= */
+/* table setup / waiting table: pinned to the window so the page can never slide and hide the top bar */
+.felt.lb, .felt.pw { position: fixed; inset: 0; height: auto !important; }
+.lt-empty { flex: 0 1 660px; min-width: 0; }
+
+/* phones & small tablets upright: lobby header flows, list fills the rest */
+@media (max-width: 900px) {
+  .ol-screen { display: flex; flex-direction: column; }
+  .ol-head { position: relative; flex: none; }
+  .ol-head .ol-coins { order: 2; margin-left: auto; }
+  .ol-head .ol-box { order: 3; flex: 1 1 150px; }
+  .lt-row { position: relative; top: auto; flex: 1; min-height: 0; }
+}
+
+/* phones turned sideways (short screens) */
+@media (max-height: 500px) and (orientation: landscape) {
+  .welcome { min-height: calc(100dvh - 56px); padding: 10px 16px; }
+  .wel-inner { gap: 8px; margin-bottom: 0; }
+  .wel-logo svg { width: 84px; } .wel-logo .logo-name span { font-size: 44px; }
+  .wel-line { margin: 0; }
+  .wel-btns { flex-direction: row; gap: 10px; width: auto; }
+  .welcome .wel-btn, .welcome .wel-btn.wide { width: auto; min-width: 250px; height: 48px; font-size: 17px; }
+  .welcome .wel-ico { width: 48px; font-size: 20px; }
+  .welcome .wel-guest { font-size: 22px; margin-top: 2px; }
+  .wel-fine { display: none; }
+  .welcome .host { height: 100%; opacity: .9; } .welcome .host.left { left: -40px; } .welcome .host.right { right: -40px; }
+
+  .ol-screen { display: flex; flex-direction: column; }
+  .ol-head { position: relative; height: auto; flex: none; flex-wrap: nowrap; gap: 8px; padding: 6px 12px; }
+  .ol-back { width: 44px; height: 44px; }
+  .ol-box { flex-direction: row; gap: 6px; padding: 4px 8px; } .ol-label { font-size: 16px; }
+  .ol-ctl b { height: 32px; min-width: 70px; font-size: 18px; } .ol-ctl b.ol-type { min-width: 120px; } .ol-ctl button { width: 30px; height: 30px; font-size: 18px; }
+  .ol-mode-img { width: 30px; height: 26px; }
+  .ol-coins { height: 40px; font-size: 24px; padding-right: 14px; }
+  .lt-row { position: relative; top: auto; flex: 1; min-height: 0; flex-direction: row; align-items: center; gap: 50px; padding: 30px 30px 40px; overflow-x: auto; overflow-y: hidden; }
+  .lt-row > * { zoom: .5; }
+  .lt-empty { flex-direction: row; text-align: left; zoom: .62 !important; max-width: none; }
+
+  .ol-backdrop { align-items: center; overflow-y: auto; }
+  .rt2 { gap: 6px; } .rt2-title { font-size: 24px; }
+  .rt2-cards { flex-direction: row; gap: 10px; }
+  .mc2 { width: 200px; padding: 8px; } .mc2-title { font-size: 32px; } .mc2-sub { font-size: 13px; margin: 2px 0 6px; }
+  .mc2-art { aspect-ratio: auto; height: 120px; } .mc2-art img { height: 76px; flex: none; }
+  .ct-modal { width: min(560px, 96vw); padding: 0 18px 12px; }
+  .ct-hero { margin: 0 -18px 4px; padding: 8px 18px 2px; } .ct-head { font-size: 22px; } .ct-city { font-size: 40px; }
+  .ct-bet { gap: 6px; padding: 4px 0 6px; } .ct-bubble { font-size: 26px; } .ct-bubble img { width: 40px; height: 40px; }
+  .ct-note { font-size: 12px; padding: 6px 18px; margin: 0 -18px; } .ct-play { min-height: 46px; font-size: 28px; margin-top: 8px; }
+
+  .pw-head { position: absolute; left: 0; right: 0; top: 0; padding: 8px 12px 0; }
+  .pw-stage { padding: 34px 0 6px; justify-content: flex-start; }
+  .pw-table { width: calc(100vw - 150px); height: calc(100dvh - 120px); min-height: 0; }
+  .pw-felt { inset: 12% 10% 16%; gap: 4px; } .pw-felt .lt-city span { font-size: 30px; }
+  .pw-felt .lt-pills { flex-direction: row; } .pw-felt .lt-pill { height: 30px; font-size: 18px; min-width: 0; padding: 0 10px; }
+  .pw-text { font-size: 18px; }
+  .pw-seat { zoom: .5; }
+  .pw-actions { position: absolute; right: 10px; bottom: 8px; margin: 0; flex-direction: row; border-radius: 999px; padding: 4px 4px 4px 12px; }
+  .pw-wait { font-size: 12px; } .pw-now { font-size: 16px; }
+
+  .lb-head { padding: 6px 10px; } .lb-back { width: 40px; height: 40px; }
+  .lb-main { flex-direction: row; gap: 8px; padding: 0 8px 6px; }
+  .lb-stage { padding: 36px 40px 50px; }
+  .lb-table { max-height: none; min-height: 0; }
+  .lb-felt { inset: 10% 8% 16%; gap: 4px; } .lb-felt .lt-city span { font-size: 28px; }
+  .lb-pills .lt-pill { height: 28px; font-size: 17px; min-width: 0; padding: 0 10px; }
+  .lb-deal { font-size: 18px; padding: 7px 14px 5px; } .lb-sub { display: none; }
+  .lb-seat { zoom: .5; }
+  .lb-rules { width: 270px; align-self: stretch; max-height: 100%; padding: 8px 10px; }
+  .lb-rules ul { display: flex; gap: 4px; } .lb-rules li small { display: none; }
+  .lb-sets { display: flex; margin-top: 6px; padding-top: 6px; gap: 4px; }
+  .lb-rules-head { font-size: 18px; margin-bottom: 4px; }
+}
+/* never let a popup or focus scroll these full-screen views (overflow:hidden still allows that; clip doesn't) */
+.felt.lb, .felt.pw, .felt.tbl, .ol-screen, .lb-main, .lb-stage { overflow: clip; }
+.lb-rules { overflow-y: auto; }
+/* big table on a phone turned sideways */
+.tbl-short header { padding: 4px 10px 0 !important; }
+.tbl-short header .round-ui, .tbl-short header button { transform: scale(.72); transform-origin: top right; }
+.tbl-short header img[alt="Ek Haven"], .tbl-short header .font-display { transform: scale(.8); transform-origin: top left; }
+.tbl-wide.tbl-short .tbl-felt-wrap { left: 64px; right: 64px; }
+.tbl-wide.tbl-short .tbl-center { inset: max(14%, 30px) 22% calc(var(--hb) + 22px); }
+.tbl-wide.tbl-short .tbl-center > div:last-child { margin-top: 6px; padding: 3px 10px; font-size: 12px; }
+.tbl-short .tbl-me-mid .seat-name-me { font-size: 13px; }
+.tbl-short .tbl-actions { transform: translate(50%, 50%) scale(.75); }
+.tbl-short .tbl-coach { top: 50px; width: 220px; transform: scale(.85); transform-origin: top left; }
+.tbl-short .tbl-hand-wide { padding-left: 120px !important; padding-right: 120px !important; }
+.tbl-short .pulse-ring[aria-label="Call Ek"] { transform: scale(.7); }
+@media (max-height: 500px) and (orientation: landscape) {
+  .rk { width: 98vw; max-height: 96dvh; padding: 8px 12px 6px; gap: 4px; }
+  .rk-x { top: 4px; right: 4px; width: 34px; height: 34px; }
+  .rk-title { font-size: 20px; letter-spacing: 2px; } .rk-title img { width: 22px; height: 22px; }
+  .rk-body { flex-direction: row; gap: 10px; }
+  .rk-tabs button { height: 32px; font-size: 14px; }
+  .rk-cols { font-size: 12px; } .rk-row { height: 40px; } .rk-av { width: 30px; height: 30px; } .rk-name, .rk-score { font-size: 18px; }
+  .rk-medal { font-size: 24px; } .rk-num { width: 28px; height: 28px; font-size: 15px; }
+  .rk-pane { min-height: 0; }
+  .rk-side { width: 220px; display: flex; flex-direction: column; gap: 4px; }
+  .rk-rewards { display: block; padding: 6px 8px; border-radius: 14px; }
+  #rkRewards { display: flex; flex-direction: column; gap: 3px; }
+  .rk-rw-title { font-size: 18px; margin-bottom: 2px; } .rk-rw { height: 24px; font-size: 15px; padding: 0 10px; }
+  .rk-ends { font-size: 15px; } .rk-last { height: 34px; font-size: 15px; }
+  .rk-note { display: none; } .rk-you { min-height: 30px; font-size: 12px; padding: 3px 10px; }
+  .rk-tiles { grid-template-columns: repeat(4, 1fr); gap: 6px; } .rk-tile { padding: 4px; } .rk-tile i { font-size: 16px; } .rk-tile b { font-size: 20px; }
+  .rk-me { gap: 6px; } .rk-me-head b { font-size: 20px; } .rk-av.big { width: 40px; height: 40px; }
+}
+@media (max-width: 900px) { .lt-row > * { zoom: .5; } }

@@ -7,7 +7,7 @@ import { sound, play } from '../lib/sound.js';
 import { useVoiceUno, voiceSupported } from '../lib/useVoiceUno.js';
 import { Card, COLOR_HEX, cardName } from './Card.jsx';
 import { Hand } from './Hand.jsx';
-import { useViewport, pileCardWidth, handCardWidth } from '../lib/useViewport.js';
+import { useViewport, pileCardWidth, handCardWidth, isWide } from '../lib/useViewport.js';
 import { ColorPicker, SwapPicker } from './Pickers.jsx';
 import { ChatPanel, EmoteBar, EmoteLayer } from './Social.jsx';
 import { Recap } from './Recap.jsx';
@@ -260,7 +260,8 @@ export function Table() {
   const { room, game, me, actions, shake, lastFx, chat, mode } = useGame();
   const vp = useViewport();
   // Computers, tablets and phones held sideways get Spade Haven's big table; phones held upright keep the compact layout.
-  const wide = vp.w >= 900 && vp.h >= 540 && vp.w > vp.h * 1.15;
+  const wide = isWide(vp);
+  const short = wide && vp.h < 540; // phone turned sideways
   const [chatOpen, setChatOpen] = useState(false);
   const [emotesOpen, setEmotesOpen] = useState(false);
   const [tipsOn, setTipsOn] = useState(() => prefs.get('tips', true));
@@ -391,11 +392,12 @@ export function Table() {
   const bet = Number(room.settings?.bet) || 0;
   // Wide layout, like Spade Haven: the table fills the window and your cards overlap its bottom rail.
   const cardH = Math.round(handCardWidth(vp) * 1.46);
-  const feltBottom = spectator ? 120 : Math.round(cardH + 66 - cardH * 0.42);
-  const feltH = vp.h - 74 - feltBottom;
+  const feltTop = short ? 44 : 74;
+  const feltBottom = spectator ? (short ? 70 : 120) : Math.round(cardH + (short ? 40 : 66) - cardH * 0.42);
+  const feltH = vp.h - feltTop - feltBottom;
   const clampN = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
-  const seatZoom = Number(clampN(feltH / 500, 0.7, 1).toFixed(3));
-  const wrapStyle = { bottom: feltBottom, '--hb': `${Math.round(spectator ? 40 : cardH * 0.42)}px`, '--sz': clampN(feltH / 500, 0.7, 1).toFixed(3), '--pz': clampN(feltH / 470, 0.6, 1).toFixed(3) };
+  const seatZoom = Number(clampN(feltH / 500, short ? 0.42 : 0.7, 1).toFixed(3));
+  const wrapStyle = { top: feltTop, bottom: feltBottom, '--hb': `${Math.round(spectator ? 40 : cardH * 0.42)}px`, '--sz': clampN(feltH / 500, short ? 0.42 : 0.7, 1).toFixed(3), '--pz': clampN(feltH / 470, 0.6, 1).toFixed(3) };
   const actionRow = (
     <>
             {coachOn && myTurn && (
@@ -428,7 +430,7 @@ export function Table() {
   );
 
   return (
-    <div className={`felt tbl h-full flex flex-col overflow-hidden ${wide ? 'tbl-wide' : ''} ${shaking ? 'shake' : ''}`}>
+    <div className={`felt tbl h-full flex flex-col overflow-hidden ${wide ? 'tbl-wide' : ''} ${short ? 'tbl-short' : ''} ${shaking ? 'shake' : ''}`}>
       <div className="tbl-scene" style={{ backgroundImage: `url(/ui/city/${city[0]}.webp)` }} aria-hidden />
       <TopBar onChat={() => setChatOpen((o) => !o)} unread={unread} voiceOn={voiceOn} setVoiceOn={setVoiceOn} listening={listening}
         coachOn={coachOn} setCoachOn={setCoachOn} tipsOn={tipsOn} setTipsOn={setTipsOn} />

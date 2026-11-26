@@ -14,10 +14,13 @@ export function useViewport() {
 }
 
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+/** Big table layout: computers, tablets sideways, and phones sideways (short screens get a compact version). */
+export const isWide = ({ w, h }) => (w >= 900 && h >= 540 && w > h * 1.15) || (w >= 640 && h >= 300 && h < 540 && w > h * 1.45);
 /** Card width for your hand: big on desktop, still fits a phone. */
 export const handCardWidth = ({ w, h }) => {
-  const wide = w >= 900 && h >= 540 && w > h * 1.15; // the big table needs room for your seat under it
+  const wide = isWide({ w, h }); // the big table needs room for your seat under it
+  if (wide && h < 540) return Math.round(clamp(h * 0.16, 56, 84)); // phone sideways
   return Math.round(clamp(Math.min(w * 0.1, h * (wide ? 0.14 : 0.165)), 84, 150));
 };
 /** Card width for the draw/discard piles. */
-export const pileCardWidth = ({ w, h }) => Math.round(clamp(Math.min(w * 0.27, h * 0.13), 84, 124));
+export const pileCardWidth = ({ w, h }) => (isWide({ w, h }) && h < 540 ? Math.round(clamp(h * 0.14, 48, 74)) : Math.round(clamp(Math.min(w * 0.27, h * 0.13), 84, 124)));

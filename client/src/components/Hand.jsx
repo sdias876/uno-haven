@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useRef, useState } from 'react';
 import { Card } from './Card.jsx';
-import { useViewport, handCardWidth } from '../lib/useViewport.js';
+import { useViewport, handCardWidth, isWide } from '../lib/useViewport.js';
 
 const ORDER = { red: 0, yellow: 1, green: 2, blue: 3, wild: 4 };
 const VAL = (v) => (/^\d$/.test(v) ? Number(v) : { skip: 10, reverse: 11, draw2: 12, wild: 13, wild4: 14 }[v]);
@@ -27,6 +27,8 @@ export function Hand({ hand, playable, myTurn, hintCardId, onPlay, disabled, cen
   const vp = useViewport();
   const cardW = handCardWidth(vp);
   const cardH = Math.round(cardW * 1.46);
+  const short = isWide(vp) && vp.h < 540; // phone sideways: tighter hand
+  const padH = short ? 40 : 66, yOff = short ? 8 : 20;
   const size = cardW;
   const cards = sortHand(hand);
   const n = cards.length;
@@ -44,7 +46,7 @@ export function Hand({ hand, playable, myTurn, hintCardId, onPlay, disabled, cen
   const [hover, setHover] = useState(null);
 
   return (
-    <div ref={ref} className="relative w-full isolate" style={{ height: cardH + 66 }}>
+    <div ref={ref} className="relative w-full isolate" style={{ height: cardH + padH }}>
       <AnimatePresence initial={false}>
         {cards.map((card, i) => {
           const t = n <= 1 ? 0 : i / (n - 1) - 0.5; // -0.5..0.5
@@ -66,7 +68,7 @@ export function Hand({ hand, playable, myTurn, hintCardId, onPlay, disabled, cen
               onHoverStart={() => setHover(card.id)}
               onHoverEnd={() => setHover((h) => (h === card.id ? null : h))}
               initial={{ y: -260, x: width / 2, opacity: 0, rotate: -40, scale: 0.6 }}
-              animate={{ x, y: arcY + lift + 20, rotate: angle, opacity: 1, scale: 1 }}
+              animate={{ x, y: (short ? arcY * 0.5 : arcY) + (short ? lift * 0.6 : lift) + yOff, rotate: angle, opacity: 1, scale: 1 }}
               exit={{ y: -220, opacity: 0, scale: 0.8, transition: { duration: 0.25 } }}
               transition={{ type: 'spring', stiffness: 380, damping: 30, mass: 0.7 }}
               className={`absolute left-0 top-0 origin-bottom outline-none ${canPlay ? 'cursor-pointer' : 'cursor-default'}`}
