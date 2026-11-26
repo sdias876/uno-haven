@@ -576,6 +576,6 @@ h1.font-display, h2.font-display { font-family: var(--font-bebas); letter-spacin
 .tbl-wide .tbl-seat.pos-me .seat-ring img { width: 88px !important; height: 88px !important; }
 .tbl-wide .tbl-seat.pos-me .seat-name-me { font-size: 16px; padding: 4px 16px; }
 .tbl-wide .tbl-actions { left: auto; right: 12%; bottom: 0; transform: translate(50%, 50%); }
-.tbl-hand-wide { position: absolute; left: 0; right: 0; bottom: 0; z-index: 20; padding: 0 clamp(210px, 21vw, 400px) env(safe-area-inset-bottom); pointer-events: none; }
+.tbl-hand-wide { position: absolute; left: 0; right: 0; bottom: 0; z-index: 20; padding: 0 clamp(240px, 23vw, 400px) env(safe-area-inset-bottom); pointer-events: none; }
 .tbl-hand-wide > * { pointer-events: auto; }
 .tbl-spec-wide { position: absolute; left: 0; right: 0; bottom: 0; z-index: 20; }
