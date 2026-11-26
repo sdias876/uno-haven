@@ -99,6 +99,7 @@ export function mountShell(root, api) {
   };
   const goPlay = () => {
     show('menu');
+    if (!prefs.get('tutorialDone', false)) setTimeout(() => api.openTutorial?.(), 400);
     try { history.replaceState(null, '', location.pathname + location.search + '#play'); } catch { /* ignore */ }
     if (!$('nameIn').value.trim()) setTimeout(() => $('nameIn').focus({ preventScroll: true }), 200);
   };
@@ -529,6 +530,24 @@ export function mountShell(root, api) {
     const tok = new URLSearchParams(location.search).get('reset');
     if (tok && ACCT.enabled) { resetToken = tok; show('menu'); openAuth('reset'); }
   })();
+
+  // ---- welcome screen (like Spade Haven's, without Google Play) ----
+  function renderWelcome() {
+    const a = ACCT.get(), nm = $('nameIn').value.trim();
+    $('welBtns').hidden = !!a || !ACCT.enabled;
+    $('welResume').hidden = !a && !nm;
+    $('welResumeTxt').textContent = `Continue as ${a?.name || nm}`;
+    $('welGuest').textContent = a ? 'Play' : nm ? 'Play as a guest' : 'Continue as guest';
+    $('welGuest').hidden = !!a;
+  }
+  const signInThenPlay = (mode) => {
+    openAuth(mode);
+    const t = setInterval(() => { if (!$('authOv').hidden) return; clearInterval(t); if (ACCT.get()) goPlay(); renderWelcome(); }, 300);
+  };
+  $('welSignIn').onclick = () => signInThenPlay('in');
+  $('welRegister').onclick = () => signInThenPlay('up');
+  $('welGuest').onclick = goPlay; $('welResume').onclick = goPlay;
+  renderWelcome(); setTimeout(renderWelcome, 1500); setTimeout(renderWelcome, 4000);
 
   // ---- rules + promo ----
   const rulesOpen = () => { $('rulesOv').hidden = false; };

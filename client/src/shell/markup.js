@@ -12,6 +12,8 @@ export function emblem(n, cls = 'emb') {
 <radialGradient id="en${n}" cx=".5" cy=".32" r=".75"><stop offset="0" stop-color="#4a5ee8"/><stop offset=".6" stop-color="#1f2a9c"/><stop offset="1" stop-color="#0b0f45"/></radialGradient>
 <linearGradient id="cr${n}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff5a5d"/><stop offset=".5" stop-color="#e5383b"/><stop offset="1" stop-color="#b3191c"/></linearGradient>
 <linearGradient id="cb${n}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5a9bff"/><stop offset=".5" stop-color="#2d7ff9"/><stop offset="1" stop-color="#1652b8"/></linearGradient>
+<linearGradient id="cw${n}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2e3460"/><stop offset=".5" stop-color="#14172b"/><stop offset="1" stop-color="#05060c"/></linearGradient>
+<clipPath id="co${n}"><ellipse cx="94" cy="105" rx="20" ry="32" transform="rotate(28 94 105)"/></clipPath>
 <filter id="es${n}"><feDropShadow dx="0" dy="3" stdDeviation="2.5" flood-color="#000" flood-opacity=".55"/></filter>
 </defs>
 <circle cx="120" cy="128" r="112" fill="#6b4306"/>
@@ -20,7 +22,7 @@ export function emblem(n, cls = 'emb') {
 <circle cx="120" cy="120" r="99" fill="url(#en${n})"/>
 <path d="M34 96 A90 90 0 0 1 206 96" fill="none" stroke="#fff" stroke-opacity=".14" stroke-width="6" stroke-linecap="round"/>
 <g filter="url(#es${n})">
-${card(62, -16, 'cb', `<text x="94" y="118" text-anchor="middle" font-family="Arial Black,Impact,sans-serif" font-weight="900" font-size="38" fill="#2d7ff9" stroke="#151a36" stroke-width="2.5" paint-order="stroke">7</text>`)}
+${card(62, -16, 'cw', `<g clip-path="url(#co${n})"><rect x="54" y="65" width="40" height="40" fill="#e5383b"/><rect x="94" y="65" width="40" height="40" fill="#2d7ff9"/><rect x="54" y="105" width="40" height="40" fill="#2bb673"/><rect x="94" y="105" width="40" height="40" fill="#f7c548"/></g><text x="94" y="116" text-anchor="middle" font-family="Arial Black,Impact,sans-serif" font-weight="900" font-size="27" fill="#fff" stroke="#151a36" stroke-width="3" paint-order="stroke">+4</text>`)}
 ${card(114, 14, 'cr', `<text x="146" y="114" text-anchor="middle" font-family="Arial Black,Impact,sans-serif" font-weight="900" font-size="32" fill="#e5383b" stroke="#151a36" stroke-width="2.5" paint-order="stroke" transform="rotate(-18 146 110)">EK</text>`)}
 </g>
 <g filter="url(#es${n})">
@@ -53,16 +55,19 @@ export const SHELL_HTML = `
     <div class="land-links"><a href="#features">Features</a><button class="linklike" data-play>Game modes</button><button class="linklike" data-rules-open>Rules</button></div>
     <button class="pill green nav-cta" data-play>Play free</button>
   </nav>
-  <header class="hero felt-bg" id="top">
-    <div class="hero-copy">
-      <div class="hero-logo">${emblem(1)}<div class="logo-name"><span>EK</span><span>HAVEN</span></div></div>
-      <p class="hero-tag">Match the color or the number, hit them with a +4, and call EK! when you're down to one card. Smart bots, friends online and a coach at your side.</p>
-      <div class="hero-ctas"><button class="pill green big" data-play>&#9654; Play in your browser</button></div>
-      <p class="hero-fine">Free to play · No sign-up needed · Phones, tablets and computers</p>
-    </div>
-    <div class="hero-art" aria-hidden="true">
-      <div class="device"><div class="device-screen">${miniTable}</div></div>
-      <div class="fan" id="heroFan"></div>
+  <header class="welcome felt-bg" id="top">
+    <img class="host left" src="/ui/hostess-left.webp" alt="" draggable="false">
+    <img class="host right" src="/ui/hostess-right.webp" alt="" draggable="false">
+    <div class="wel-inner">
+      <div class="wel-logo">${emblem(1)}<div class="logo-name"><span>EK</span><span>HAVEN</span></div></div>
+      <div class="wel-line" aria-hidden="true"></div>
+      <div class="wel-btns" id="welBtns">
+        <button class="wel-btn green" id="welSignIn"><span class="wel-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26"><rect x="3" y="5" width="18" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M4 7l8 6 8-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/></svg></span><span>Sign in with email</span></button>
+        <button class="wel-btn gold" id="welRegister"><span class="wel-ico" aria-hidden="true">★</span><span>New player? Register</span></button>
+      </div>
+      <button class="wel-btn green wide" id="welResume" hidden><span class="wel-ico" aria-hidden="true">▶</span><span id="welResumeTxt">Continue</span></button>
+      <button class="wel-guest" id="welGuest">Continue as guest</button>
+      <p class="wel-fine">Free to play · No download · Phones, tablets and computers · <a href="#features">What is Ek Haven?</a></p>
     </div>
   </header>
   <section class="land-section" id="features">

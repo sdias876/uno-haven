@@ -30,7 +30,7 @@ export function Home() {
   const [fan, setFan] = useState(null);
   const [lobby, setLobby] = useState(false);
   const shellApi = useRef(null);
-  const [tutorial, setTutorial] = useState(() => !prefs.get('tutorialDone', false) && !new URLSearchParams(location.search).get('room'));
+  const [tutorial, setTutorial] = useState(() => !prefs.get('tutorialDone', false) && location.hash === '#play' && !new URLSearchParams(location.search).get('room'));
 
   useEffect(() => {
     const root = ref.current;
